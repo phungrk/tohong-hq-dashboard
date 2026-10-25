@@ -63,6 +63,7 @@ td{padding:6px 10px 6px 0;border-bottom:1px solid var(--line);vertical-align:top
 .num{text-align:right}
 tr.click{cursor:pointer}tr.click:hover td{background:var(--bg)}
 tr.hiring td{color:var(--muted)}
+tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--panel)}
 .scroll{max-height:360px;overflow:auto}
 .pill{display:inline-block;padding:0 7px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
 .pill.bad{color:var(--bad);border-color:currentColor}.pill.warn{color:var(--warn);border-color:currentColor}.pill.ok{color:var(--ok);border-color:currentColor}
@@ -86,7 +87,8 @@ tr.hiring td{color:var(--muted)}
 @media (prefers-reduced-motion:reduce){.live.on::before,.act-chip::before{animation:none}.act-ring{animation:none;opacity:.7}.fresh,tr.fresh td{animation:none}}
 footer{color:var(--faint);font-size:12px}
 footer a{color:inherit}
-@media (max-width:560px){.hide-n{display:none}}
+@media (max-width:560px){.hide-n{display:none}#team th,#team td{padding-right:6px}#team th:last-child,#team td:last-child{padding-right:0}}
+@media (max-width:359px){#team .pill{white-space:normal;border-radius:8px}}
 </style>
 </head>
 <body>
@@ -111,7 +113,8 @@ footer a{color:inherit}
   <section class="card" id="doi-ngu">
     <h2>Đội ngũ</h2>
     <p class="note">Sơ đồ tổ chức trong org/roster.json. Một vị trí chuyển từ Need Hiring sang Hired ngay khi file agent của nó có trong repo.</p>
-    <div class="scroll"><table id="team"><thead><tr><th>Vị trí</th><th class="hide-n">Phụ trách</th><th>Trạng thái</th><th class="num">Đang giữ</th><th class="num">Kết quả</th><th class="hide-n">Tính theo</th></tr></thead><tbody></tbody></table></div>
+    <div class="scroll"><table id="team"><thead><tr><th>Vị trí</th><th class="hide-n">Phụ trách</th><th>Trạng thái</th><th class="num">Đang giữ</th><th class="num">Kết quả</th><th class="hide-n">Tính theo</th><th class="num">Chi phí</th></tr></thead><tbody></tbody><tfoot></tfoot></table></div>
+    <p class="note" id="team-cost-note" style="margin:8px 0 0">Chi phí là tổng trường cost của các sự kiện do vị trí đó thực hiện (USD). Chỉ tính chi phí agent đã ghi bằng <code>--cost</code>; bước nào không ghi thì coi là $0.00.</p>
   </section>
 
   <div class="grid">
@@ -270,8 +273,10 @@ function derive(d){
     else if(r.id==='chief-of-staff'){output=events.filter(e=>e.event==='assigned').length;label='Việc đã giao'}
     else if(r.id==='capu'){output=events.filter(e=>e.event==='decided').length;label='Quyết định'}
     else{output=tasks.filter(t=>t.owner===r.id&&t.state==='done').length;label='Việc đã xong'}
-    return {...r,wip,output,label};
+    const cost=events.reduce((s,e)=>e.from===r.id?s+(+e.cost||0):s,0);
+    return {...r,wip,output,label,cost};
   });
+  const costTotal=events.reduce((s,e)=>s+(+e.cost||0),0);
   const fm=new Map();
   events.filter(e=>!['file_written','board_edited_directly','started'].includes(e.event)&&e.from&&e.to&&e.from!==e.to).forEach(e=>{
     const key=e.event==='rejected'?e.to+'>'+e.from:e.from+'>'+e.to;const [a,b]=key.split('>');
@@ -308,7 +313,7 @@ function derive(d){
     if(t.state==='rework')r.rework=true;
   });
   const active=[...em.values()];
-  return {tasks,events,roster,k,team,flows:[...fm.values()],alerts,active};
+  return {tasks,events,roster,k,team,costTotal,flows:[...fm.values()],alerts,active};
 }
 
 function drawHeader(x,generated){
@@ -330,7 +335,17 @@ function drawTeam(x){
     const tr=tb.insertRow();if(r.status!=='Hired')tr.className='hiring';
     cell(tr,r.name);cell(tr,r.role,'hide-n');pill(tr,r.status,r.status==='Hired'?' ok':' warn');
     cell(tr,r.status==='Hired'?r.wip:'—','num');cell(tr,r.status==='Hired'?r.output:'—','num');cell(tr,r.label,'hide-n');
+    cell(tr,r.status==='Hired'?fmtCost(r.cost):'—','num');
   });
+  const tf=document.querySelector('#team tfoot');tf.innerHTML='';
+  const tr=tf.insertRow();
+  const lbl=cell(tr,'Tổng chi phí');lbl.colSpan=4;
+  const hidden=tr.insertCell();hidden.colSpan=2;hidden.className='hide-n';
+  cell(tr,fmtCost(x.costTotal),'num');
+  const shown=x.team.reduce((s,r)=>r.status==='Hired'?s+r.cost:s,0),other=x.costTotal-shown;
+  const extra=$('team-cost-extra');
+  if(Math.abs(other)>=0.005){const n=extra||document.createElement('span');n.id='team-cost-extra';n.textContent=' Tổng gồm cả '+fmtCost(other)+' của vị trí chưa tuyển hoặc nằm ngoài sơ đồ.';if(!extra)$('team-cost-note').appendChild(n)}
+  else if(extra)extra.remove();
 }
 
 function drawFlow(x){
