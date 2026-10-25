@@ -166,7 +166,7 @@ const STATE_LABEL={new:'Mới',doing:'Đang làm',review:'Chờ review',rework:'
 let D=null,selected=null,names={};
 
 // ---------- đường truyền trực tiếp (Cloudflare Worker tohong-live) ----------
-const LIVE_DEFAULT='';
+const LIVE_DEFAULT='https://tohong-live.phungnc.workers.dev';
 const LIVE_URL=((new URLSearchParams(location.search).get('live'))||LIVE_DEFAULT).replace(/\/$/,'');
 const ACT_TTL=120000;
 const overlay=new Map();     // việc -> {patch, key}: trạng thái mới nhất nhận trực tiếp, chưa có trong Git
