@@ -117,20 +117,19 @@ footer a{color:inherit}
     <p class="note" id="team-cost-note" style="margin:8px 0 0">Chi phí là tổng trường cost của các sự kiện do vị trí đó thực hiện (USD). Chỉ tính chi phí agent đã ghi bằng <code>--cost</code>; bước nào không ghi thì coi là $0.00.</p>
   </section>
 
-  <div class="grid">
-    <section class="card">
+  <section class="card" id="ban-do-luong">
       <h2>Bản đồ luồng</h2>
       <p class="note">Đường nối xám là số lần bàn giao, đường đỏ đứt là số lần bị trả về. Đường xanh đậm có nét chảy là việc đang chạy, đi từ bên giao sang bên nhận; đường đỏ liền là việc đang rework. Số trong vòng tròn là việc đang giữ; vòng nét đứt là vị trí chưa tuyển.</p>
       <div class="flow" id="flow"></div>
       <div class="legend"><span><i style="border-color:var(--axis)"></i>Bàn giao</span><span><i style="border-color:var(--bad);border-top-style:dashed"></i>Trả về</span><span><span class="dot"></span>Need Hiring</span><span><i style="border-color:var(--accent);border-top-width:4px"></i>Việc đang chạy</span><span><i style="border-color:var(--bad);border-top-width:4px"></i>Đang rework</span></div>
       <p class="empty" id="flow-live" style="margin:8px 0 0"></p>
-    </section>
-    <section class="card">
+  </section>
+
+  <section class="card" id="canh-bao">
       <h2>Cảnh báo</h2>
       <p class="note">Việc cần anh nhìn tới, nặng nhất ở trên. Bấm một dòng để xem dòng thời gian.</p>
       <div class="scroll"><table id="alerts"><thead><tr><th>Việc</th><th>Tên</th><th>Vấn đề</th><th class="num">Giờ</th></tr></thead><tbody></tbody></table></div>
-    </section>
-  </div>
+  </section>
 
   <section class="card">
     <h2>Kanban toàn công ty</h2>
