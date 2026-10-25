@@ -72,6 +72,18 @@ tr.hiring td{color:var(--muted)}
 @keyframes flowmove{to{stroke-dashoffset:-14}}
 @keyframes glowpulse{50%{opacity:.15}}
 @media (prefers-reduced-motion:reduce){.run-flow{display:none;animation:none}.run-glow{animation:none}}
+.live.on::before{animation:livepulse 1.6s ease-in-out infinite}
+.live.wait::before{background:var(--warn)}
+@keyframes livepulse{50%{opacity:.25}}
+.activity{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;min-height:24px}
+.act-chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:2px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel)}
+.act-chip::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok);animation:livepulse 1.2s ease-in-out infinite}
+.act-chip b{font-weight:500}.act-chip .k{color:var(--muted)}
+.act-ring{fill:none;stroke:var(--ok);stroke-width:2;pointer-events:none;transform-box:fill-box;transform-origin:center;animation:actring 1.6s ease-out infinite}
+@keyframes actring{from{opacity:.85;transform:scale(1)}to{opacity:0;transform:scale(1.55)}}
+.fresh,tr.fresh td{animation:fresh 3.5s ease-out}
+@keyframes fresh{from{background:color-mix(in srgb,var(--accent) 24%,transparent)}to{background:transparent}}
+@media (prefers-reduced-motion:reduce){.live.on::before,.act-chip::before{animation:none}.act-ring{animation:none;opacity:.7}.fresh,tr.fresh td{animation:none}}
 footer{color:var(--faint);font-size:12px}
 footer a{color:inherit}
 @media (max-width:560px){.hide-n{display:none}}
@@ -82,7 +94,8 @@ footer a{color:inherit}
   <header>
     <h1>Tơ Hồng HQ – Luồng công việc</h1>
     <p class="take" id="takeaway">Đang tải dữ liệu…</p>
-    <p class="asof"><span class="live" id="live">Dữ liệu sổ cái lúc <span id="asof">—</span></span><span>Trang tải lại lúc <span id="loaded">—</span>, tự làm mới mỗi phút</span></p>
+    <p class="asof"><span class="live wait" id="live">Đang kết nối…</span><span>Sổ cái Git lúc <span id="asof">—</span></span></p>
+    <div class="activity" id="activity" aria-live="polite"></div>
   </header>
   <div class="banner" id="banner"></div>
 
@@ -152,6 +165,17 @@ const MAX_ANIM=6;
 const STATE_LABEL={new:'Mới',doing:'Đang làm',review:'Chờ review',rework:'Rework'};
 let D=null,selected=null,names={};
 
+// ---------- đường truyền trực tiếp (Cloudflare Worker tohong-live) ----------
+const LIVE_DEFAULT='';
+const LIVE_URL=((new URLSearchParams(location.search).get('live'))||LIVE_DEFAULT).replace(/\/$/,'');
+const ACT_TTL=120000;
+const overlay=new Map();     // việc -> {patch, key}: trạng thái mới nhất nhận trực tiếp, chưa có trong Git
+const liveEvents=new Map();  // khóa sự kiện -> sự kiện nhận trực tiếp, chưa có trong Git
+const activity=new Map();    // agent -> {action, tool, at}
+const fresh=new Map();       // khóa -> thời điểm nhận, để tô sáng thứ vừa đổi
+let liveState='off',serverOffset=0,ws=null,retry=0,raf=0;
+const evKey=e=>[e.ledger_id||e.id||'',e.task||'',e.event||'',e.t||''].join('|');
+
 const $=id=>document.getElementById(id);
 const fmtCost=v=>'$'+d3.format(',.2f')(v||0);
 const fmtT=s=>s?`${s.slice(8,10)}/${s.slice(5,7)} ${s.slice(11,16)}`:'—';
@@ -161,6 +185,70 @@ const pillCls=ev=>ev==='rejected'||ev==='blocked'||ev==='board_edited_directly'?
 function cell(tr,v,cls){const td=tr.insertCell();td.textContent=v;if(cls)td.className=cls;return td}
 function pill(tr,text,cls){const td=tr.insertCell();const p=document.createElement('span');p.className='pill'+cls;p.textContent=text;td.appendChild(p);return td}
 function emptyRow(tb,n,text){const tr=tb.insertRow();const td=tr.insertCell();td.colSpan=n;td.className='empty';td.textContent=text}
+const isFresh=k=>{const t=fresh.get(k);return t&&Date.now()-t<4000};
+const nowServer=()=>Date.now()+serverOffset;
+function ago(at){const s=Math.max(0,Math.round((nowServer()-at)/1000));return s<60?s+' giây trước':Math.round(s/60)+' phút trước'}
+function activeAgents(){return [...activity.values()].filter(a=>nowServer()-a.at<ACT_TTL)}
+
+function applyLive(e,markFresh){
+  const ev={...e,seq:'L-'+String(e.received||Date.now()).padStart(15,'0'),ledger_id:e.id,cost:e.cost||0};
+  const k=evKey(ev);
+  if(D&&D.events.some(x=>evKey(x)===k))return;
+  liveEvents.set(k,ev);
+  if(markFresh)fresh.set(k,Date.now());
+  if(e.state&&e.task){
+    const prev=overlay.get(e.task);
+    if(!prev||e.t>=prev.patch.updated){
+      const patch={state:e.state,holder:e.holder||'',updated:e.t};
+      if(typeof e.round==='number')patch.rounds=e.round;
+      ['title','owner','reviewer'].forEach(f=>{if(e[f])patch[f]=e[f]});
+      overlay.set(e.task,{patch,key:k});
+      if(markFresh)fresh.set('task:'+e.task,Date.now());
+    }
+  }
+}
+
+function merged(){
+  const gitKeys=new Set(D.events.map(evKey));
+  for(const [tid,o] of overlay)if(gitKeys.has(o.key))overlay.delete(tid);
+  for(const k of [...liveEvents.keys()])if(gitKeys.has(k))liveEvents.delete(k);
+  const tasks=D.tasks.map(t=>{const o=overlay.get(t.id);return o?{...t,...o.patch}:t});
+  for(const [tid,o] of overlay)if(!tasks.some(t=>t.id===tid)){const p=o.patch;
+    tasks.push({id:tid,title:p.title||tid,state:p.state,holder:p.holder,owner:p.owner||p.holder,reviewer:p.reviewer||'reviewer',rounds:p.rounds||0,version:0,deadline:'',budget:'',cost:0,created:p.updated,updated:p.updated})}
+  return {...D,tasks,events:D.events.concat([...liveEvents.values()])};
+}
+
+function setLive(state){
+  liveState=state;const el=$('live');
+  el.classList.toggle('on',state==='on');el.classList.toggle('off',state==='down');el.classList.toggle('wait',state==='connecting'||state==='off');
+  el.textContent={on:'Trực tiếp',down:'Mất kết nối trực tiếp, đang thử lại…',connecting:'Đang kết nối trực tiếp…',off:'Cập nhật mỗi phút (chưa bật trực tiếp)'}[state];
+}
+function connectLive(){
+  if(!LIVE_URL){setLive('off');return}
+  if(liveState!=='on')setLive('connecting');
+  try{ws=new WebSocket(LIVE_URL.replace(/^http/,'ws')+'/ws')}catch(_){return retryLive()}
+  ws.onopen=()=>{retry=0;setLive('on');scheduleRender()};
+  ws.onmessage=m=>{
+    let d;try{d=JSON.parse(m.data)}catch(_){return}
+    if(d.type==='snapshot'){serverOffset=d.server_time-Date.now();(d.events||[]).forEach(e=>applyLive(e,false));activity.clear();(d.activity||[]).forEach(a=>activity.set(a.agent,a))}
+    else if(d.type==='event')applyLive(d,true);
+    else if(d.type==='activity'){if(!activity.has(d.agent))fresh.set('agent:'+d.agent,Date.now());activity.set(d.agent,d)}
+    scheduleRender();
+  };
+  ws.onclose=()=>{setLive('down');retryLive()};
+  ws.onerror=()=>{try{ws.close()}catch(_){}};
+}
+function retryLive(){retry=Math.min(retry+1,5);setTimeout(connectLive,1000*2**retry)}
+function scheduleRender(){if(raf)return;raf=requestAnimationFrame(()=>{raf=0;render()})}
+
+function drawActivity(){
+  const box=$('activity');box.innerHTML='';
+  if(liveState!=='on')return;
+  const list=activeAgents().sort((a,b)=>b.at-a.at);
+  if(!list.length){const s=document.createElement('span');s.className='empty';s.textContent='Không agent nào đang hoạt động';box.appendChild(s);return}
+  list.forEach(a=>{const c=document.createElement('span');c.className='act-chip'+(isFresh('agent:'+a.agent)?' fresh':'');
+    const n=document.createElement('b');n.textContent=nm(a.agent);const k=document.createElement('span');k.className='k';k.textContent=a.action+' · '+ago(a.at);c.append(n,k);box.appendChild(c)});
+}
 
 function derive(d){
   const now=Date.now();
@@ -286,10 +374,12 @@ function drawFlow(x){
   });
   const live=$('flow-live');
   if(live)live.textContent=act.length?act.reduce((n,r)=>n+r.tasks.length,0)+' việc đang chạy trên '+act.length+' đường':'Không có việc nào đang chạy';
+  const working=new Map(activeAgents().map(a=>[a.agent,a]));
   Object.keys(pos).forEach(k=>{
-    const [cx,cy]=P(k),r=R(k),m=team.get(k),hiring=m&&m.status!=='Hired';
-    const n=svg.append('g').attr('transform',`translate(${cx},${cy})`).on('mousemove',ev=>show(ev,m?[[null,m.name+' · '+m.status],['Đang giữ',m.wip+' việc'],[m.label,m.output]]:[[null,'Việc đã hoàn thành']])).on('mouseleave',hide);
+    const [cx,cy]=P(k),r=R(k),m=team.get(k),hiring=m&&m.status!=='Hired',w=working.get(k);
+    const n=svg.append('g').attr('transform',`translate(${cx},${cy})`).on('mousemove',ev=>show(ev,m?[[null,m.name+' · '+m.status],['Đang giữ',m.wip+' việc'],[m.label,m.output]].concat(w?[['Đang',w.action+' · '+ago(w.at)]]:[]):[[null,'Việc đã hoàn thành']])).on('mouseleave',hide);
     if(act.some(a=>a.doing&&a.to===k))n.append('circle').attr('class','run-glow').attr('r',r+5);
+    if(w&&!hiring){n.append('circle').attr('class','act-ring').attr('r',r+2);n.append('text').attr('y',r+28).attr('text-anchor','middle').attr('fill','var(--ok)').style('font-size','11.5px').text(w.action)}
     n.append('circle').attr('r',r).attr('fill',k==='done'?'var(--bg)':'var(--panel)').attr('stroke',hiring?'var(--axis)':(m&&m.wip>0?'var(--accent)':'var(--axis)')).attr('stroke-width',m&&m.wip>0&&!hiring?2:1.25).attr('stroke-dasharray',hiring?'4 3':null);
     if(m)n.append('text').attr('text-anchor','middle').attr('dominant-baseline','central').attr('fill',hiring?'var(--muted)':'var(--fg)').style('font-size','12px').text(hiring?'?':m.wip);
     n.append('text').attr('y',r+14).attr('text-anchor','middle').attr('fill',hiring?'var(--muted)':'var(--fg)').style('font-size','12px').text(m?m.name:'Hoàn thành');
@@ -306,7 +396,7 @@ function drawBoard(x){
     const h=document.createElement('div');h.className='colh'+(warn&&list.length?' bad':'');
     const a=document.createElement('span');a.textContent=label;const c=document.createElement('span');c.textContent=list.length;h.append(a,c);col.appendChild(h);
     list.forEach(t=>{
-      const card=document.createElement('button');card.className='tcard';card.setAttribute('aria-pressed',String(selected===t.id));
+      const card=document.createElement('button');card.className='tcard'+(isFresh('task:'+t.id)?' fresh':'');card.setAttribute('aria-pressed',String(selected===t.id));
       const id=document.createElement('span');id.className='id';id.textContent=t.id+(t.state!=='done'&&t.hours>24?' · đứng yên':'');
       const tt=document.createElement('span');tt.className='tt';tt.textContent=t.title;
       const mt=document.createElement('span');mt.className='mt';mt.textContent=t.state==='done'?'Xong · '+nm(t.owner)+' · '+fmtT(t.updated):nm(t.holder)+' · '+Math.round(t.hours)+' giờ';
@@ -344,14 +434,16 @@ function drawFeed(x){
   const tb=document.querySelector('#feed tbody');tb.innerHTML='';
   if(!x.events.length)return emptyRow(tb,5,'Nhật ký còn trống.');
   x.events.slice().sort((a,b)=>a.t<b.t||(a.t===b.t&&a.seq<b.seq)?1:-1).slice(0,15).forEach(e=>{
-    const tr=tb.insertRow();tr.className='click';cell(tr,fmtT(e.t));cell(tr,e.task||'—');pill(tr,EV[e.event]||e.event,pillCls(e.event));cell(tr,nm(e.from),'hide-n');cell(tr,nm(e.to),'hide-n');
+    const tr=tb.insertRow();tr.className='click'+(isFresh(evKey(e))?' fresh':'');cell(tr,fmtT(e.t));cell(tr,e.task||'—');pill(tr,EV[e.event]||e.event,pillCls(e.event));cell(tr,nm(e.from),'hide-n');cell(tr,nm(e.to),'hide-n');
     tr.addEventListener('click',()=>{if(e.task){selected=e.task;render()}});
   });
 }
 
 function render(){
+  drawActivity();
   if(!D)return;
-  const x=derive(D);
+  for(const [k,t] of fresh)if(Date.now()-t>6000)fresh.delete(k);
+  const x=derive(merged());
   drawTeam(x);drawHeader(x,D.generated_at);drawAlerts(x);drawTimeline(x);drawBoard(x);drawFlow(x);drawFeed(x);
 }
 
@@ -360,18 +452,19 @@ async function load(){
     const res=await fetch(DATA_URL+'?t='+Date.now(),{cache:'no-store'});
     if(!res.ok)throw new Error('HTTP '+res.status);
     D=await res.json();
-    $('banner').style.display='none';$('live').classList.remove('off');
+    $('banner').style.display='none';
     render();
   }catch(err){
-    $('live').classList.add('off');
     const b=$('banner');b.style.display='block';
-    b.textContent=D?'Không tải được dữ liệu mới ('+err.message+'). Đang hiện bản tải trước đó.':'Chưa tải được dữ liệu ('+err.message+'). Kiểm tra nhánh dashboard-data của repo tohong-hq.';
+    b.textContent=D?'Không tải được dữ liệu Git mới ('+err.message+'). Đang hiện bản tải trước đó.':'Chưa tải được dữ liệu ('+err.message+'). Kiểm tra nhánh dashboard-data của repo tohong-hq.';
   }
-  const n=new Date();$('loaded').textContent=n.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Ho_Chi_Minh'});
 }
 
 let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(render,150)});
 load();setInterval(load,REFRESH_MS);
+connectLive();
+setInterval(()=>{if(ws&&ws.readyState===1)ws.send('ping')},25000);
+setInterval(()=>{if(liveState==='on')render()},15000);
 })();
 </script>
 </body>
