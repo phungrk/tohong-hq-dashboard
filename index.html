@@ -11,14 +11,14 @@
 <style>
 :root{
   --bg:#f7f6f2;--panel:#ffffff;--line:#e4e1d8;--fg:#24231f;--muted:#6f6c63;--faint:#a19d92;
-  --accent:#3b6fd8;--bad:#c2412d;--warn:#a86a10;--ok:#2f7d4f;--axis:#9a968b;--grid:#ecE9e0;
+  --spec:#7a4fc4;--accent:#3b6fd8;--bad:#c2412d;--warn:#a86a10;--ok:#2f7d4f;--axis:#9a968b;--grid:#ecE9e0;
   --tip-bg:#ffffff;--tip-shadow:0 4px 16px rgba(0,0,0,.08);
   --sans:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;--serif:"Lora",Georgia,serif;
   --r:10px;
 }
 @media (prefers-color-scheme:dark){
   :root{--bg:#191917;--panel:#22221f;--line:#34332e;--fg:#ecebe6;--muted:#a3a097;--faint:#6f6c63;
-    --accent:#7fa4ef;--bad:#ef7a63;--warn:#e0a54a;--ok:#6fc28f;--axis:#7d7a70;--grid:#2c2b27;
+    --spec:#b79af0;--accent:#7fa4ef;--bad:#ef7a63;--warn:#e0a54a;--ok:#6fc28f;--axis:#7d7a70;--grid:#2c2b27;
     --tip-bg:#2a2a26;--tip-shadow:0 4px 16px rgba(0,0,0,.4)}
 }
 *{box-sizing:border-box}
@@ -110,6 +110,9 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--line);positi
 .st-working .c-arm-r{animation:k-type .3s steps(1,end) -.15s infinite}
 .st-receiving .c-arm,.st-celebrating .c-arm{animation:k-armup .5s steps(1,end) infinite}
 .st-handing-off .c-arm-r{animation:k-give 1s steps(1,end) infinite}
+.st-revising .chr-anim{animation:k-sway .8s steps(1,end) infinite}
+.st-revising .c-arm-l{animation:k-type .3s steps(1,end) infinite}
+.st-revising .c-arm-r{animation:k-type .3s steps(1,end) -.15s infinite}
 .st-working .c-prop{animation:k-tap .6s steps(1,end) infinite}
 .st-working.role-reviewer .c-prop{animation:k-scan .9s steps(1,end) infinite}
 .st-working.role-engineering .c-prop{animation:none}
@@ -126,6 +129,7 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--line);positi
 @keyframes k-hop{0%{transform:translateY(0)}33%{transform:translateY(-6px)}66%{transform:translateY(-3px)}}
 @keyframes k-jump{0%{transform:translateY(0)}25%{transform:translateY(-9px)}50%{transform:translateY(-12px)}75%{transform:translateY(-6px)}}
 @keyframes k-shake{0%{transform:translateX(0) scaleY(.93)}25%{transform:translateX(-3px) scaleY(.93)}50%{transform:translateX(0) scaleY(.93)}75%{transform:translateX(3px) scaleY(.93)}}
+@keyframes k-sway{50%{transform:translateX(3px)}}
 @keyframes k-type{50%{transform:translateY(-3px)}}
 @keyframes k-armup{50%{transform:translateY(-6px)}}
 @keyframes k-give{0%{transform:translate(0,0)}25%{transform:translate(3px,-3px)}50%{transform:translate(6px,-3px)}75%{transform:translate(3px,-3px)}}
@@ -136,6 +140,34 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--line);positi
 @keyframes k-fall{0%{opacity:1;transform:translateY(0)}33%{transform:translateY(3px)}66%{transform:translateY(6px)}}
 @keyframes k-send{0%{opacity:1;transform:translate(0,0)}25%{transform:translate(calc(var(--dx)*.35),calc(var(--dy)*.35))}50%{transform:translate(calc(var(--dx)*.7),calc(var(--dy)*.7))}75%{opacity:1;transform:translate(var(--dx),var(--dy))}90%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.chr,.chr *{animation:none!important}}
+/* ---- bảng Đài phun nước (T-021) ----
+   Không animation: nghẽn hiện bằng khung màu, mức nước bằng nền xanh dâng theo số việc. */
+.fn{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;margin-top:12px}
+.fn-stage,.fn-lane{position:relative;isolation:isolate;padding:10px 12px;font-size:12px}
+.fn-stage{min-height:112px;display:flex;flex-direction:column;gap:2px}
+.fn-frame{position:absolute;inset:0;z-index:-1;border:2px solid var(--line);border-radius:var(--r);overflow:hidden;pointer-events:none}
+.fn-frame::before{content:"";position:absolute;left:0;right:0;bottom:0;height:var(--lvl,0%);background:color-mix(in srgb,var(--accent) 13%,transparent)}
+.fn-stage[data-warn~=stuck] .fn-frame{border-color:var(--warn)}
+.fn-stage[data-warn~=spec] .fn-frame{border-color:var(--spec)}
+.fn-lane[data-warn=capu] .fn-frame{border-color:var(--bad)}
+.fn-name{font-weight:500}
+.fn-sub{color:var(--muted);font-size:11px;line-height:1.3}
+.fn-count{font-family:var(--serif);font-size:26px;font-variant-numeric:tabular-nums;line-height:1.2}
+.fn-tags{display:flex;flex-wrap:wrap;gap:2px 8px;font-variant-numeric:tabular-nums}
+.fn-stuck{color:var(--warn)}.fn-spec{color:var(--spec)}
+.fn-stage:not(:last-child)::after{content:"\2192";position:absolute;right:-14px;top:50%;width:14px;margin-top:-9px;text-align:center;color:var(--axis);font-size:13px}
+.fn-return{margin:4px calc(100%/12) 0;padding:6px 10px 4px;border:1.5px dashed var(--axis);border-top:0;border-radius:0 0 var(--r) var(--r);color:var(--muted);font-size:12px;text-align:center;position:relative}
+.fn-return::before{content:"\25B2";position:absolute;left:-7px;top:-8px;color:var(--axis);font-size:10px}
+.fn-foot{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:14px}
+.fn-lane{flex:1 1 18rem;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px}
+.fn-lane .fn-count{font-size:22px}
+.fn-lane .fn-sub{flex-basis:100%}
+@media (max-width:560px){
+  .fn{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fn-stage:nth-child(even):not(:last-child)::after{content:"\2199";right:auto;left:50%;top:auto;bottom:-17px;margin:0 0 0 -7px}
+  .fn-return{margin:8px 0 0;border:0;padding:0;text-align:left}
+  .fn-return::before{content:none}
+}
 footer{color:var(--faint);font-size:12px}
 footer a{color:inherit}
 @media (max-width:560px){.hide-n{display:none}#team th,#team td{padding-right:6px}#team th:last-child,#team td:last-child{padding-right:0}}
@@ -171,8 +203,14 @@ footer a{color:inherit}
   <section class="card" id="ban-do-luong">
       <h2>Bản đồ luồng</h2>
       <div class="flow" id="flow"></div>
-      <div class="legend"><span><i style="border-color:var(--axis)"></i>Bàn giao</span><span><i style="border-color:var(--bad);border-top-style:dashed"></i>Trả về</span><span><span class="dot"></span>Need Hiring</span><span><i style="border-color:var(--accent);border-top-width:4px"></i>Việc đang chạy</span><span><i style="border-color:var(--bad);border-top-width:4px"></i>Đang rework</span></div>
+      <div class="legend"><span><i style="border-color:var(--axis)"></i>Bàn giao</span><span><i style="border-color:var(--bad);border-top-style:dashed"></i>Trả về</span><span><span class="dot"></span>Need Hiring</span><span><i style="border-color:var(--accent);border-top-width:4px"></i>Việc đang chạy</span><span><i style="border-color:var(--bad);border-top-width:4px"></i>Đang rework</span><span><i style="border-color:var(--spec);border-top-width:4px"></i>Về spec</span></div>
       <p class="empty" id="flow-live" style="margin:8px 0 0"></p>
+  </section>
+
+  <section class="card" id="dai-phun-nuoc">
+      <h2>Đài phun nước</h2>
+      <p class="note">Nước chảy từ Máy bơm tới Bể rồi quay lại. Mỗi ô là số việc đang ở tầng đó. Viền cam: có việc đứng yên quá 24 giờ. Viền tím: có việc về spec. Viền đỏ: việc đang chờ anh.</p>
+      <div id="fountain"></div>
   </section>
 
   <section class="card" id="canh-bao">
@@ -209,12 +247,14 @@ footer a{color:inherit}
 const DATA_URL='https://raw.githubusercontent.com/phungrk/tohong-hq/dashboard-data/dashboard.json';
 const REFRESH_MS=60000;
 const EV={requested:"Capu giao việc",assigned:"Giao việc",started:"Bắt đầu",handoff:"Bàn giao",rejected:"Trả về",accepted:"Chấp nhận",escalated:"Leo thang",blocked:"Báo bị chặn",unblocked:"Gỡ chặn",decided:"Capu quyết định",file_written:"Ghi file",board_edited_directly:"Sửa tay sổ cái"};
-const POS_WIDE={"capu":[.5,40],"chief-of-staff":[.5,130],"product":[.1,245],"engineering":[.3,245],"vendor-ops":[.5,245],"growth":[.7,245],"finance":[.9,245],"reviewer":[.35,360],"done":[.7,360]};
-const POS_NARROW={"capu":[.5,40],"chief-of-staff":[.5,130],"product":[.17,240],"engineering":[.5,240],"vendor-ops":[.83,240],"growth":[.33,335],"finance":[.67,335],"reviewer":[.3,450],"done":[.7,450]};
+const POS_WIDE={"capu":[.5,40],"chief-of-staff":[.5,130],"product":[.1,245],"engineering":[.3,245],"vendor-ops":[.5,245],"growth":[.7,245],"finance":[.9,245],"reviewer":[.35,360],"done":[.7,360],"insight":[.2,130]};
+const POS_NARROW={"capu":[.5,40],"chief-of-staff":[.5,130],"product":[.17,240],"engineering":[.5,240],"vendor-ops":[.83,240],"growth":[.33,335],"finance":[.67,335],"reviewer":[.3,450],"done":[.7,450],"insight":[.2,130]};
 let pos=POS_WIDE;
 const RUN_STATES=['new','doing','review','rework'];
 const MAX_ANIM=6;
-const STATE_LABEL={new:'Mới',doing:'Đang làm',review:'Chờ review',rework:'Rework'};
+const STATE_LABEL={new:'Mới',doing:'Đang làm',review:'Chờ review',rework:'Rework',spec:'Về spec'};
+const TIERS=['A','B','C','?'];
+const tierOf=t=>['A','B','C'].includes(t.tier)?t.tier:'?';
 let D=null,selected=null,names={};
 
 // ---------- đường truyền trực tiếp (Cloudflare Worker tohong-live) ----------
@@ -371,7 +411,10 @@ function derive(d){
     if(t.state==='rework')r.rework=true;
   });
   const active=[...em.values()];
-  return {tasks,events,roster,k,team,costTotal,flows:[...fm.values()],alerts,active};
+  // việc về spec: một đường riêng reviewer -> product, tách khỏi đường rework cùng hai đầu
+  const specTasks=tasks.filter(t=>t.state==='spec');
+  if(specTasks.length)active.push({from:'reviewer',to:'product',tasks:specTasks,since:specTasks.map(t=>t.updated).sort().pop(),fast:true,rework:false,doing:false,spec:true});
+  return {tasks,events,roster,k,team,costTotal,flows:[...fm.values()],alerts,active,regression:d.regression_evals};
 }
 
 function drawHeader(x,generated){
@@ -424,6 +467,8 @@ const ROLES={
     over:{1:'.....H.HH.....'},prop:grid({0:'..........YYY.',1:'..........YWY.',2:'..........YWY.',3:'...........Y..',4:'...........G..'}),rays:grid({1:'.........Y...Y',3:'.........Y...Y'})},
   'engineering':{pal:{H:'#2a2a2a',S:'#f1c9a0',E:'#222',M:'#a8554a',C:'#1f9a8a',D:'#157064',L:'#3b4252',B:'#222'},
     over:{1:'.....YYYY.....',2:'....YYYYYY....',3:'...YYYYYYYY...'},armsFront:1,prop:grid({10:'...GGGGGGGG...',11:'...GGGWWGGG...',12:'...hhhhhhhh...'})},
+  'insight':{pal:{H:'#2c3e50',S:'#f1c9a0',E:'#222',M:'#a8554a',C:'#2b8fd6',D:'#bfe6ff',L:'#24476b',B:'#222'},
+    over:{0:'......bb......',1:'.....bbbb.....'},prop:grid({9:'..........bwwb.',10:'..........bbbb.',11:'..........bbbb.',12:'...........bb..'})},
   'reviewer':{pal:{H:'#9a9aa2',S:'#f1c9a0',E:'#222',M:'#a8554a',C:'#8f3b4a',D:'#f0e6e6',L:'#2e2e38',B:'#222'},
     over:{5:'....KeKKeK....'},prop:grid({6:'...........NN.',7:'..........NwwN',8:'..........NwwN',9:'...........NN.',10:'...........N..',11:'..........N...',12:'..........N...'})},
   'done':{pal:{},body:TROPHY},
@@ -456,7 +501,7 @@ function spriteMarkup(role){
 
 // ---------- trạng thái nhân vật: hàm thuần (T-019) ----------
 // x.recent: sự kiện vừa tới [{event,from,to,owner,at}] (at = mili giây lúc nhận); x.working: Set agent đang hoạt động live.
-// Thứ tự ưu tiên: Need Hiring > nhất thời (nhận / giao / ăn mừng / bị trả về, TRANS_MS sau sự kiện) > working (wip>0 hoặc live) > idle.
+// Thứ tự ưu tiên: Need Hiring > nhất thời (nhận / giao / ăn mừng / bị trả về, TRANS_MS sau sự kiện) > revising (Product có việc spec) > working (wip>0 hoặc live) > idle.
 const TRANS_PRIO={upset:4,celebrating:3,receiving:2,'handing-off':1};
 function roleInEvent(e,id){
   if(!e||e.from===e.to&&e.event!=='accepted')return null;
@@ -478,28 +523,32 @@ function characterState(id,x,now){
   const m=x.team.find(r=>r.id===id);
   if(m&&m.status!=='Hired')return 'hiring';
   const t=transientFor(id,x,now);if(t)return t.state;
+  if(id==='product'&&x.tasks.some(v=>v.state==='spec'&&(!v.holder||v.holder==='product')))return 'revising';
   if((x.working&&x.working.has(id))||(m&&m.wip>0))return 'working';
   return 'idle';
 }
-const CHAR_LABEL={idle:'Rảnh',working:'Đang làm',receiving:'Vừa nhận việc','handing-off':'Vừa giao việc',celebrating:'Hoàn thành',upset:'Bị trả về',hiring:'Chưa tuyển'};
+const CHAR_LABEL={revising:'Đang sửa spec',idle:'Rảnh',working:'Đang làm',receiving:'Vừa nhận việc','handing-off':'Vừa giao việc',celebrating:'Hoàn thành',upset:'Bị trả về',hiring:'Chưa tuyển'};
 let stateTimer=0;
 
 function drawFlow(x){
   const box=$('flow');box.innerHTML='';
-  const W=Math.max(300,box.clientWidth),narrow=W<560,H=narrow?510:420;
-  pos=narrow?POS_NARROW:POS_WIDE;box.style.minHeight=H+'px';
+  const W=Math.max(300,box.clientWidth),narrow=W<560,H=narrow?530:440;
   const team=new Map(x.team.map(r=>[r.id,r]));
+  // insight chỉ có nút khi roster có nó (tests/characters.js của T-019 đếm 9 nhân vật)
+  pos=Object.fromEntries(Object.entries(narrow?POS_NARROW:POS_WIDE).filter(([k])=>k!=='insight'||team.has(k)));
+  box.style.minHeight=H+'px';
   const P=k=>[pos[k][0]*W,pos[k][1]];
   const R=k=>16+Math.min(((team.get(k)||{}).wip)||0,6)*2.5;
   const svg=d3.select(box).append('svg').attr('width','100%').attr('viewBox',`0 0 ${W} ${H}`).attr('role','img').attr('aria-label','Bản đồ luồng bàn giao giữa các vị trí');
   const defs=svg.append('defs');
-  [['ah','var(--axis)',5,1.5],['ar','var(--bad)',5,1.5],['aa','var(--accent)',6,2.2],['ab','var(--bad)',6,2.2]].forEach(([id,c,mw,sw])=>defs.append('marker').attr('id',id).attr('viewBox','0 0 10 10').attr('refX',8).attr('refY',5).attr('markerWidth',mw).attr('markerHeight',mw).attr('orient','auto-start-reverse').append('path').attr('d','M2 1L8 5L2 9').attr('fill','none').attr('stroke',c).attr('stroke-width',sw).attr('stroke-linecap','round'));
+  [['ah','var(--axis)',5,1.5],['ar','var(--bad)',5,1.5],['aa','var(--accent)',6,2.2],['ab','var(--bad)',6,2.2],['as','var(--spec)',6,2.2]].forEach(([id,c,mw,sw])=>defs.append('marker').attr('id',id).attr('viewBox','0 0 10 10').attr('refX',8).attr('refY',5).attr('markerWidth',mw).attr('markerHeight',mw).attr('orient','auto-start-reverse').append('path').attr('d','M2 1L8 5L2 9').attr('fill','none').attr('stroke',c).attr('stroke-width',sw).attr('stroke-linecap','round'));
   const tip=d3.select(box).append('div').attr('class','tip');
   const show=(ev,lines)=>{const rect=box.getBoundingClientRect();tip.html('');lines.forEach(([k,v])=>{const d=tip.append('div');if(k)d.append('span').attr('class','k').text(k+' ');d.append('span').text(v)});
     const tw=tip.node().offsetWidth,th=tip.node().offsetHeight;let px=ev.clientX-rect.left+12,py=ev.clientY-rect.top-th-8;if(px+tw>rect.width)px=rect.width-tw-4;if(py<0)py=ev.clientY-rect.top+14;tip.style('left',px+'px').style('top',py+'px').style('opacity',1)};
   const hide=()=>tip.style('opacity',0);
-  const edge=(a,b)=>{const [x1,y1]=P(a),[x2,y2]=P(b);const dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy)||1;let cx,cy;
-    if(Math.abs(dy)<1){cx=(x1+x2)/2;cy=y1-(30+len*.12)}else{cx=(x1+x2)/2-dy/len*18;cy=(y1+y2)/2+dx/len*18}
+  // flip: cong về phía ngược lại, để đường spec không chồng lên đường rework cùng hai đầu
+  const edge=(a,b,flip)=>{const sg=flip?-1:1,[x1,y1]=P(a),[x2,y2]=P(b);const dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy)||1;let cx,cy;
+    if(Math.abs(dy)<1){cx=(x1+x2)/2;cy=y1-sg*(30+len*.12)}else{cx=(x1+x2)/2-sg*dy/len*18;cy=(y1+y2)/2+sg*dx/len*18}
     const ua=Math.hypot(cx-x1,cy-y1),ub=Math.hypot(cx-x2,cy-y2);
     return `M${x1+(cx-x1)/ua*R(a)},${y1+(cy-y1)/ua*R(a)}Q${cx},${cy} ${x2+(cx-x2)/ub*(R(b)+3)},${y2+(cy-y2)/ub*(R(b)+3)}`};
   const g=svg.append('g');
@@ -511,17 +560,43 @@ function drawFlow(x){
     if(r.rejects>0)g.append('path').attr('d',edge(r.to,r.from)).attr('fill','none').attr('stroke','var(--bad)').attr('stroke-width',Math.min(1+r.rejects*.8,6)).attr('stroke-dasharray','5 4').attr('marker-end','url(#ar)').attr('opacity',dim).on('mousemove',ev=>show(ev,[[null,nm(r.to)+' trả về '+nm(r.from)],['Lần trả về',r.rejects]])).on('mouseleave',hide);
   });
   const ag=svg.append('g').attr('class','running');
+  // vùng nhãn nhân vật (tên, vai, dòng thứ ba) và nút: nhãn trên đường tránh các vùng này
+  const taken=[],tags=[],overlap=(a,b)=>Math.max(0,Math.min(a[0]+a[2],b[0]+b[2])-Math.max(a[0],b[0]))*Math.max(0,Math.min(a[1]+a[3],b[1]+b[3])-Math.max(a[1],b[1]));
+  Object.keys(pos).forEach(k=>{const [cx,cy]=P(k),L=Math.max(R(k),20),m=team.get(k);
+    taken.push([cx-L-2,cy-L-2,2*L+30,2*L+4]);
+    const line=(txt,dy,fs)=>{const w=txt.length*fs*.56+4;taken.push([cx-w/2,cy+L+dy-fs,w,fs+4])};
+    line(m?m.name:'Hoàn thành',15,12);if(m){line(m.role,30,10.5);line('Need Hiring',45,12)}});
   act.forEach((r,i)=>{
-    const col=r.rework?'var(--bad)':'var(--accent)',d=edge(r.from,r.to),animate=i<MAX_ANIM;
-    const p=ag.append('path').attr('class','run-edge').attr('data-from',r.from).attr('data-to',r.to).attr('d',d).attr('fill','none').attr('stroke',col).attr('stroke-width',r.rework?3.5:3).attr('stroke-linecap','round').attr('marker-end',r.rework?'url(#ab)':'url(#aa)')
-      .on('mousemove',ev=>show(ev,(r.from==='capu'?[[null,'Capu giao việc, chờ giao cho bộ phận']]:[]).concat(r.tasks.map(t=>[t.id,t.title+' · '+STATE_LABEL[t.state]])))).on('mouseleave',hide);
+    const reviews=r.tasks.filter(t=>t.state==='review');
+    const kind=r.spec?'spec':reviews.length?'review':r.rework?'rework':'run';
+    const col=r.spec?'var(--spec)':r.rework?'var(--bad)':'var(--accent)',d=edge(r.from,r.to,r.spec),animate=i<MAX_ANIM;
+    const p=ag.append('path').attr('class','run-edge').attr('data-kind',kind).attr('data-from',r.from).attr('data-to',r.to).attr('d',d).attr('fill','none').attr('stroke',col).attr('stroke-width',r.rework?3.5:3).attr('stroke-linecap','round').attr('marker-end',r.spec?'url(#as)':r.rework?'url(#ab)':'url(#aa)')
+      .on('mousemove',ev=>show(ev,(r.from==='capu'?[[null,'Capu giao việc, chờ giao cho bộ phận']]:[]).concat(r.tasks.map(t=>[t.id,t.title+' · '+STATE_LABEL[t.state]+(t.state==='review'?' · Bậc '+tierOf(t)+(tierOf(t)==='C'?' · chờ anh merge':''):'')])))).on('mouseleave',hide);
     if(animate)ag.append('path').attr('class','run-flow').attr('data-from',r.from).attr('data-to',r.to).attr('data-speed',r.fast?'fast':'slow').attr('d',d).style('--dur',r.fast?'1s':'3s');
-    if(r.tasks.length>1){
-      const node=p.node(),pt=node.getPointAtLength(node.getTotalLength()/2);
+    const node=p.node(),pt=node.getPointAtLength(node.getTotalLength()/2);
+    if(r.tasks.length>1&&!r.spec){
       const b=ag.append('g').attr('class','run-badge').attr('transform',`translate(${pt.x},${pt.y})`).style('pointer-events','none');
       b.append('rect').attr('x',-14).attr('y',-9).attr('width',28).attr('height',18).attr('rx',9).attr('fill','var(--panel)').attr('stroke',col).attr('stroke-width',1.5);
       b.append('text').attr('text-anchor','middle').attr('dominant-baseline','central').attr('fill','var(--fg)').style('font-size','11px').text('×'+r.tasks.length);
+      taken.push([pt.x-14,pt.y-9,28,18]);
     }
+    const lines=kind==='review'?(()=>{const ts=TIERS.filter(k=>reviews.some(t=>tierOf(t)===k));return [[ts.join('·'),'tier']].concat(ts.includes('C')?[['chờ anh merge','await-merge']]:[])})()
+      :r.spec?[['Về spec'+(r.tasks.length>1?' ×'+r.tasks.length:''),'spec-edge']]:[];
+    if(lines.length)tags.push({r,node,col,lines});
+  });
+  // nhãn trên đường: thử vài điểm dọc đường, hai phía, chọn chỗ ít đè lên tên, nhãn vai, huy hiệu và nhãn khác nhất
+  tags.forEach(({r,node,col,lines})=>{
+    const len=node.getTotalLength(),w=Math.max(...lines.map(l=>l[0].length))*6.2+4,h=13;
+    let best=null;
+    for(const t of [.5,.42,.58,.34,.66,.26,.74])for(const side of [-1,1]){
+      const pt=node.getPointAtLength(len*t),y0=side<0?pt.y-12:pt.y+16;
+      const box=[pt.x-w/2,side<0?y0-h*(lines.length-1)-10:y0-10,w,h*(lines.length-1)+13];
+      let sc=taken.reduce((n,q)=>n+overlap(box,q),0)+((box[0]<0||box[0]+w>W||box[1]<0||box[1]+box[3]>H)?1e4:0);
+      if(!best||sc<best.sc)best={sc,pt,y0,side,box};
+      if(!sc)break;
+    }
+    taken.push(best.box);
+    lines.forEach(([text,label],i)=>ag.append('text').attr('data-label',label).attr('data-from',r.from).attr('data-to',r.to).attr('x',best.pt.x).attr('y',best.y0-best.side*h*i).attr('text-anchor','middle').attr('fill',col).attr('stroke','var(--panel)').attr('stroke-width',3).attr('paint-order','stroke').style('font-size','11px').style('pointer-events','none').text(text));
   });
   const live=$('flow-live');
   if(live)live.textContent=act.length?act.reduce((n,r)=>n+r.tasks.length,0)+' việc đang chạy trên '+act.length+' đường':'Không có việc nào đang chạy';
@@ -532,7 +607,8 @@ function drawFlow(x){
     const st=characterState(k,x,now),tr=transientFor(k,x,now);
     const n=svg.append('g').attr('transform',`translate(${cx},${cy})`).on('mousemove',ev=>show(ev,m?[[null,m.name+' · '+m.status],['Đang giữ',m.wip+' việc'],[m.label,m.output]].concat(w?[['Đang',w.action+' · '+ago(w.at)]]:[],[['Trạng thái',CHAR_LABEL[st]]]):[[null,'Việc đã hoàn thành'],['Trạng thái',CHAR_LABEL[st]]])).on('mouseleave',hide);
     if(act.some(a=>a.doing&&a.to===k))n.append('circle').attr('class','run-glow').attr('r',r+5);
-    if(w&&!hiring){n.append('circle').attr('class','act-ring').attr('r',r+2);n.append('text').attr('y',L+29).attr('text-anchor','middle').attr('fill','var(--ok)').style('font-size','11.5px').text(w.action)}
+    const ly=m?L+45:L+29;  // dưới tên (L+15) và nhãn vai (L+30)
+    if(w&&!hiring){n.append('circle').attr('class','act-ring').attr('r',r+2);n.append('text').attr('data-label','action').attr('data-agent',k).attr('y',ly).attr('text-anchor','middle').attr('fill','var(--ok)').style('font-size','11.5px').text(w.action)}
     n.append('circle').attr('r',r).attr('fill',k==='done'?'var(--bg)':'var(--panel)').attr('stroke',hiring?'var(--axis)':(m&&m.wip>0?'var(--accent)':'var(--axis)')).attr('stroke-width',m&&m.wip>0&&!hiring?2:1.25).attr('stroke-dasharray',hiring?'4 3':null);
     let dx=28,dy=0;
     if(tr&&tr.state==='handing-off'&&pos[tr.ev.to]){const [tx,ty]=P(tr.ev.to),l=Math.hypot(tx-cx,ty-cy)||1;dx=Math.round((tx-cx)/l*28);dy=Math.round((ty-cy)/l*28)}
@@ -541,13 +617,58 @@ function drawFlow(x){
     if(m){const bg=n.append('g').attr('class','wip-badge').attr('transform',`translate(${Math.max(r,16)+8},12)`);
       bg.append('circle').attr('r',8).attr('fill','var(--panel)').attr('stroke',m.wip>0&&!hiring?'var(--accent)':'var(--axis)').attr('stroke-width',1.25).attr('stroke-dasharray',hiring?'3 2':null);
       bg.append('text').attr('text-anchor','middle').attr('dominant-baseline','central').attr('fill',hiring?'var(--muted)':'var(--fg)').style('font-size','11px').text(hiring?'?':m.wip)}
-    n.append('text').attr('y',L+15).attr('text-anchor','middle').attr('fill',hiring?'var(--muted)':'var(--fg)').style('font-size','12px').text(m?m.name:'Hoàn thành');
-    if(hiring)n.append('text').attr('y',L+29).attr('text-anchor','middle').attr('fill','var(--warn)').style('font-size','12px').text('Need Hiring');
+    n.append('text').attr('data-label','name').attr('data-agent',k).attr('y',L+15).attr('text-anchor','middle').attr('fill',hiring?'var(--muted)':'var(--fg)').style('font-size','12px').text(m?m.name:'Hoàn thành');
+    if(m)n.append('text').attr('data-label','role').attr('data-agent',k).attr('y',L+30).attr('text-anchor','middle').attr('fill','var(--muted)').style('font-size','10.5px').text(m.role);
+    if(hiring)n.append('text').attr('data-label','hiring').attr('data-agent',k).attr('y',ly).attr('text-anchor','middle').attr('fill','var(--warn)').style('font-size','12px').text('Need Hiring');
   });
   clearTimeout(stateTimer);
   const nextEnd=Math.min(...(x.recent||[]).map(e=>e.at+TRANS_MS-now).filter(v=>v>0));
   if(isFinite(nextEnd))stateTimer=setTimeout(scheduleRender,nextEnd+30);
   if(!flows.length)svg.append('text').attr('x',W/2).attr('y',H-6).attr('text-anchor','middle').attr('fill','var(--muted)').style('font-size','12px').text('Chưa có lần bàn giao nào');
+}
+
+// ---------- bảng Đài phun nước (T-021, ADR-009) ----------
+// Đếm số việc (không đếm sự kiện) từ x.tasks, cùng nguồn đã gộp live với Bản đồ luồng. Quy tắc nằm ở products/T-020-dai-phun-nuoc.md.
+const FN_STAGES=[['pump','Máy bơm','Insight'],['column','Thân cột','Product và việc về spec'],['jet','Tia','Engineering'],['filter','Lưới lọc','Reviewer, theo bậc'],['pool','Bể','Xong trong 7 ngày'],['return','Ống hồi','Insight xong trong 7 ngày']];
+const FN_OWNER_STAGE={insight:'pump',product:'column',engineering:'jet'};
+const STUCK_HOURS=24,POOL_HOURS=168;
+function fountainOf(tasks){
+  const s={pump:[],column:[],jet:[],filter:[],pool:[],return:[],capu:[],other:[]};
+  tasks.forEach(t=>{
+    if(t.state==='done'){if(t.hours<=POOL_HOURS){s.pool.push(t);if(t.owner==='insight')s.return.push(t)}}
+    else if(t.state==='blocked'||t.state==='escalated')s.capu.push(t);
+    else if(t.state==='review')s.filter.push(t);
+    else if(t.state==='spec')s.column.push(t);
+    else if(['new','doing','rework'].includes(t.state))s[FN_OWNER_STAGE[t.owner]||'other'].push(t);
+  });
+  return s;
+}
+function drawFountain(x){
+  const box=$('fountain');box.innerHTML='';
+  const s=fountainOf(x.tasks);
+  const el=(parent,tag,cls,field,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(field)e.dataset.field=field;if(text!=null)e.textContent=text;parent.appendChild(e);return e};
+  const peak=Math.max(1,...FN_STAGES.map(([id])=>s[id].length));
+  const row=el(box,'div','fn');
+  FN_STAGES.forEach(([id,name,sub])=>{
+    const list=s[id],stuck=list.filter(t=>t.state!=='done'&&t.hours>STUCK_HOURS).length,spec=list.filter(t=>t.state==='spec').length;
+    const st=el(row,'div','fn-stage');st.dataset.stage=id;st.dataset.warn=[stuck?'stuck':'',spec?'spec':''].filter(Boolean).join(' ');
+    el(st,'span','fn-frame','frame').style.setProperty('--lvl',Math.round(list.length/peak*70)+'%');
+    el(st,'span','fn-name','name',name);el(st,'span','fn-sub',null,sub);el(st,'span','fn-count','count',list.length);
+    const tags=el(st,'div','fn-tags');
+    if(id==='filter')[['a','A'],['b','B'],['c','C'],['none','?']].forEach(([f,k])=>el(tags,'span',null,'tier-'+f,k+' '+list.filter(t=>tierOf(t)===k).length));
+    if(id==='pool'){const v=x.regression;el(tags,'span','fn-sub',null,'Eval hồi quy ');el(tags,'span',null,'regression',Number.isInteger(v)&&v>=0?String(v):'—')}
+    if(stuck)el(tags,'span','fn-stuck','stuck','đứng yên '+stuck);
+    if(spec)el(tags,'span','fn-spec','spec','về spec '+spec);
+  });
+  el(box,'p','fn-return',null,'Ống hồi đưa sự cố thành eval hồi quy, quay lại Máy bơm');
+  const foot=el(box,'div','fn-foot');
+  const lane=el(foot,'div','fn-lane');lane.dataset.lane='capu';lane.dataset.warn=s.capu.length?'capu':'';
+  el(lane,'span','fn-frame','frame');
+  el(lane,'span','fn-name','name','Phía Capu');el(lane,'span','fn-count','count',s.capu.length);
+  el(lane,'span',null,'blocked','bị chặn '+s.capu.filter(t=>t.state==='blocked').length);
+  el(lane,'span',null,'escalated','leo thang '+s.capu.filter(t=>t.state==='escalated').length);
+  el(lane,'span','fn-sub',null,'Việc chờ anh, nằm ngoài chuỗi sáu tầng');
+  el(foot,'span','fn-sub','other','ngoài đài '+s.other.length);
 }
 
 function drawBoard(x){
@@ -608,7 +729,7 @@ function render(){
   const x=derive(merged());
   x.working=new Set(activeAgents().map(a=>a.agent));
   x.recent=x.events.filter(e=>fresh.has(evKey(e))).map(e=>({event:e.event,from:e.from,to:e.to,owner:(x.tasks.find(t=>t.id===e.task)||{}).owner,at:fresh.get(evKey(e))}));
-  drawTeam(x);drawHeader(x,D.generated_at);drawAlerts(x);drawTimeline(x);drawBoard(x);drawFlow(x);drawFeed(x);
+  drawTeam(x);drawHeader(x,D.generated_at);drawAlerts(x);drawTimeline(x);drawBoard(x);drawFlow(x);drawFountain(x);drawFeed(x);
 }
 
 async function load(){
