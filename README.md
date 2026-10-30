@@ -8,3 +8,5 @@ Dashboard live của công ty Tơ Hồng HQ, chạy trên GitHub Pages: https://
 - Đây là bản công khai: không có nội dung chi tiết của defect, ghi chú hay đường dẫn file.
 
 Khi chuyển sang Cloudflare Pages: deploy nguyên thư mục này, đổi `DATA_URL` trong `index.html` nếu nguồn dữ liệu đổi.
+
+Kiểm nhân vật Bản đồ luồng (Playwright, dữ liệu và kênh live giả): `D3=/đường/dẫn/d3.min.js OUT=/thư/mục/ảnh node tests/characters.js`

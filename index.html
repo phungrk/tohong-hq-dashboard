@@ -85,6 +85,57 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--line);positi
 .fresh,tr.fresh td{animation:fresh 3.5s ease-out}
 @keyframes fresh{from{background:color-mix(in srgb,var(--accent) 24%,transparent)}to{background:transparent}}
 @media (prefers-reduced-motion:reduce){.live.on::before,.act-chip::before{animation:none}.act-ring{animation:none;opacity:.7}.fresh,tr.fresh td{animation:none}}
+/* ---- nhân vật pixel art trên Bản đồ luồng (T-019) ----
+   Chỉ animate bằng transform/opacity, nhịp giật steps(1,end) như sprite. */
+.chr{pointer-events:none}
+.chr *{shape-rendering:crispEdges}
+.chr-anim,.c-arm,.c-prop,.c-rays,.fx,.fx *{transform-box:fill-box}
+.chr-anim{transform-origin:50% 100%}
+.c-arm{transform-origin:50% 0}
+.fx{display:none}
+.c-rays{opacity:0}
+.st-idle .fx-z,.st-receiving .fx-bang,.st-celebrating .fx-spark,.st-upset .fx-rain,.st-handing-off .fx-send{display:inline}
+.st-hiring{opacity:.38}
+.role-done .fx-z{display:none!important}
+.st-receiving .c-arm,.st-celebrating .c-arm{transform:translateY(-9px)}
+.st-handing-off .c-arm-r{transform:translate(6px,-3px)}
+.st-upset .chr-anim{transform:scaleY(.93)}
+.st-working .c-rays,.st-receiving .c-rays,.st-celebrating .c-rays{opacity:1}
+.st-idle .chr-anim{animation:k-breathe 2.4s steps(1,end) infinite}
+.st-working .chr-anim{animation:k-bob .5s steps(1,end) infinite}
+.st-receiving .chr-anim{animation:k-hop .7s steps(1,end) infinite}
+.st-celebrating .chr-anim{animation:k-jump .7s steps(1,end) infinite}
+.st-upset .chr-anim{animation:k-shake .4s steps(1,end) infinite}
+.st-working .c-arm-l{animation:k-type .3s steps(1,end) infinite}
+.st-working .c-arm-r{animation:k-type .3s steps(1,end) -.15s infinite}
+.st-receiving .c-arm,.st-celebrating .c-arm{animation:k-armup .5s steps(1,end) infinite}
+.st-handing-off .c-arm-r{animation:k-give 1s steps(1,end) infinite}
+.st-working .c-prop{animation:k-tap .6s steps(1,end) infinite}
+.st-working.role-reviewer .c-prop{animation:k-scan .9s steps(1,end) infinite}
+.st-working.role-engineering .c-prop{animation:none}
+.st-working .c-rays,.st-receiving .c-rays,.st-celebrating .c-rays{animation:k-blink .6s steps(1,end) infinite}
+.st-idle .fx-z{animation:k-z 2.4s steps(1,end) infinite}
+.st-receiving .fx-bang{animation:k-blink .5s steps(1,end) infinite}
+.st-celebrating .fx-sa{animation:k-blink .5s steps(1,end) infinite}
+.st-celebrating .fx-sb{animation:k-blink .5s steps(1,end) -.25s infinite}
+.st-upset .fx-da{animation:k-fall .6s steps(1,end) infinite}
+.st-upset .fx-db{animation:k-fall .6s steps(1,end) -.3s infinite}
+.st-handing-off .fx-send{animation:k-send 1.2s steps(1,end) infinite}
+@keyframes k-breathe{50%{transform:scaleY(.94)}}
+@keyframes k-bob{50%{transform:scaleY(.96)}}
+@keyframes k-hop{0%{transform:translateY(0)}33%{transform:translateY(-6px)}66%{transform:translateY(-3px)}}
+@keyframes k-jump{0%{transform:translateY(0)}25%{transform:translateY(-9px)}50%{transform:translateY(-12px)}75%{transform:translateY(-6px)}}
+@keyframes k-shake{0%{transform:translateX(0) scaleY(.93)}25%{transform:translateX(-3px) scaleY(.93)}50%{transform:translateX(0) scaleY(.93)}75%{transform:translateX(3px) scaleY(.93)}}
+@keyframes k-type{50%{transform:translateY(-3px)}}
+@keyframes k-armup{50%{transform:translateY(-6px)}}
+@keyframes k-give{0%{transform:translate(0,0)}25%{transform:translate(3px,-3px)}50%{transform:translate(6px,-3px)}75%{transform:translate(3px,-3px)}}
+@keyframes k-tap{50%{transform:translateY(-3px)}}
+@keyframes k-scan{0%{transform:translateX(0)}25%{transform:translateX(-3px)}50%{transform:translateX(-6px)}75%{transform:translateX(-3px)}}
+@keyframes k-blink{50%{opacity:.2}}
+@keyframes k-z{0%{opacity:0;transform:translateY(0)}25%{opacity:1;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}75%{opacity:1;transform:translateY(-6px)}}
+@keyframes k-fall{0%{opacity:1;transform:translateY(0)}33%{transform:translateY(3px)}66%{transform:translateY(6px)}}
+@keyframes k-send{0%{opacity:1;transform:translate(0,0)}25%{transform:translate(calc(var(--dx)*.35),calc(var(--dy)*.35))}50%{transform:translate(calc(var(--dx)*.7),calc(var(--dy)*.7))}75%{opacity:1;transform:translate(var(--dx),var(--dy))}90%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.chr,.chr *{animation:none!important}}
 footer{color:var(--faint);font-size:12px}
 footer a{color:inherit}
 @media (max-width:560px){.hide-n{display:none}#team th,#team td{padding-right:6px}#team th:last-child,#team td:last-child{padding-right:0}}
@@ -355,6 +406,84 @@ function drawTeam(x){
   else if(extra)extra.remove();
 }
 
+// ---------- nhân vật pixel art (T-019) ----------
+// Mỗi vị trí một nhân vật vẽ bằng lưới ký tự -> <rect>. Không ảnh, không thư viện. Sprite dựng một lần, lưu cache.
+const PX=3,GW=14,TRANS_MS=5000;
+const COL={Y:'#f2c230',R:'#d6402d',N:'#7a4a22',K:'#5a3d28',G:'#9aa0a6',W:'#fffdf2',b:'#5a8de0',w:'#bfe6ff',h:'#6b7078',e:'#9fd8f5',O:'#e07b1f',X:'#4b4f5c',Z:'#6f8fbf'};
+const pad=r=>'.'+r+'.';
+const BASE=['............','............','....HHHH....','...HHHHHH...','...HSSSSH...','...SESSES...','...SSMMSS...','....SSSS....','...CCCCCC...','...CCDDCC...','...CCCCCC...','...CCCCCC...','...CCCCCC...','...LL..LL...','...LL..LL...','..BBB..BBB..'].map(pad);
+const arm=c=>{const a=Array(16).fill('.'.repeat(GW));for(let y=8;y<=12;y++)a[y]=a[y].slice(0,c)+(y<12?'C':'S')+a[y].slice(c+1);return a};
+const grid=o=>{const a=Array(16).fill('.'.repeat(GW));for(const y in o)a[y]=o[y];return a};
+const TROPHY=grid({4:'...YYYYYYYY...',5:'..YYWWYYYYYY..',6:'..Y.YWYYYY.Y..',7:'..Y.YYYYYY.Y..',8:'....YYYYYY....',9:'.....YYYY.....',10:'......YY......',11:'......YY......',12:'.....OOOO.....',13:'....OOOOOO....',14:'....OOOOOO....'});
+const ROLES={
+  'capu':{pal:{H:'#3a2a20',S:'#f1c9a0',E:'#222',M:'#a8554a',C:'#2b3a67',D:'#d6402d',L:'#1f2a4d',B:'#222'},
+    over:{0:'....Y.YY.Y....',1:'....YRYYRY....'},prop:grid({3:'...........Y..',4:'..........YRY.',5:'...........N..',6:'...........N..',7:'...........N..',8:'...........N..',9:'...........N..',10:'...........N..',11:'...........N..',12:'...........N..',13:'...........N..'})},
+  'chief-of-staff':{pal:{H:'#5b3a29',S:'#f1c9a0',E:'#222',M:'#a8554a',C:'#7b4fb3',D:'#e9e2f5',L:'#3d3a52',B:'#222'},
+    over:{1:'.....GGGG.....',4:'...G......G...',5:'...G......G...'},prop:grid({8:'..GG..........',9:'.KWWK.........',10:'.KbbK.........',11:'.KWWK.........',12:'.KbbK.........',13:'.KKKK.........'})},
+  'product':{pal:{H:'#7a3b1e',S:'#f1c9a0',E:'#222',M:'#a8554a',C:'#e98a2f',D:'#ffd9a8',L:'#4a4a58',B:'#222'},
+    over:{1:'.....H.HH.....'},prop:grid({0:'..........YYY.',1:'..........YWY.',2:'..........YWY.',3:'...........Y..',4:'...........G..'}),rays:grid({1:'.........Y...Y',3:'.........Y...Y'})},
+  'engineering':{pal:{H:'#2a2a2a',S:'#f1c9a0',E:'#222',M:'#a8554a',C:'#1f9a8a',D:'#157064',L:'#3b4252',B:'#222'},
+    over:{1:'.....YYYY.....',2:'....YYYYYY....',3:'...YYYYYYYY...'},armsFront:1,prop:grid({10:'...GGGGGGGG...',11:'...GGGWWGGG...',12:'...hhhhhhhh...'})},
+  'reviewer':{pal:{H:'#9a9aa2',S:'#f1c9a0',E:'#222',M:'#a8554a',C:'#8f3b4a',D:'#f0e6e6',L:'#2e2e38',B:'#222'},
+    over:{5:'....KeKKeK....'},prop:grid({6:'...........NN.',7:'..........NwwN',8:'..........NwwN',9:'...........NN.',10:'...........N..',11:'..........N...',12:'..........N...'})},
+  'done':{pal:{},body:TROPHY},
+  '_':{pal:{H:'#8d8a80',S:'#a9a59a',E:'#8d8a80',M:'#8d8a80',C:'#9b978c',D:'#8d8a80',L:'#85817a',B:'#77736c'}}
+};
+const FX={
+  z:grid({1:'.ZZZ..........',2:'...Z..........',3:'..Z...........',4:'.ZZZ..........'}),
+  bang:grid({0:'.RR...........',1:'.RR...........',2:'.RR...........',4:'.RR...........'}),
+  sa:grid({2:'..Y...........',3:'.YYY..........',4:'..Y...........'}),
+  sb:grid({1:'............Y.',2:'...........YYY',3:'............Y.'}),
+  send:grid({8:'..........KKKK',9:'..........KWWK',10:'..........KKKK'}),
+  cloud:['.....XXXX.....','....XXXXXX....'],
+  da:grid({2:'.....b.b......'}),db:grid({2:'......b.b.....'})
+};
+function rectsOf(rows,pal){let s='';rows.forEach((row,y)=>{let x=0;while(x<row.length){const c=row[x];if(c==='.'||!pal[c]){x++;continue}let n=1;while(row[x+n]===c)n++;s+=`<rect x="${x*PX}" y="${y*PX}" width="${n*PX}" height="${PX}" fill="${pal[c]}"/>`;x+=n}});return s}
+const spriteCache={};
+function spriteMarkup(role){
+  if(spriteCache[role])return spriteCache[role];
+  const d=ROLES[role]||ROLES._,pal={...COL,...(ROLES._.pal),...d.pal};
+  let body=d.body;
+  if(!body){body=BASE.map(r=>r.split(''));for(const y in (d.over||{}))[...d.over[y]].forEach((c,x)=>{if(c!=='.')body[y][x]=c});body=body.map(r=>r.join(''))}
+  const hasArms=!d.body,arms=[hasArms?`<g class="c-arm c-arm-l">${rectsOf(arm(3),pal)}</g>`:'',hasArms?`<g class="c-arm c-arm-r">${rectsOf(arm(10),pal)}</g>`:''].join('');
+  const prop=d.prop?`<g class="c-prop">${rectsOf(d.prop,pal)}</g>`:'';
+  const rays=d.rays?`<g class="c-rays">${rectsOf(d.rays,pal)}</g>`:'';
+  const f=(c,g)=>`<g class="fx ${c}">${rectsOf(g,pal)}</g>`;
+  const fx=f('fx-z',FX.z)+f('fx-bang',FX.bang)+`<g class="fx fx-spark"><g class="fx-sa">${rectsOf(FX.sa,pal)}</g><g class="fx-sb">${rectsOf(FX.sb,pal)}</g></g>`
+    +`<g class="fx fx-rain"><g transform="translate(0,${-3*PX})"><g>${rectsOf(FX.cloud,pal)}</g><g class="fx-da">${rectsOf(FX.da,pal)}</g><g class="fx-db">${rectsOf(FX.db,pal)}</g></g></g>`+f('fx-send',FX.send);
+  return spriteCache[role]=`<g class="c-body">${rectsOf(body,pal)}</g>${d.armsFront?prop+arms:arms+prop}${rays}${fx}`;
+}
+
+// ---------- trạng thái nhân vật: hàm thuần (T-019) ----------
+// x.recent: sự kiện vừa tới [{event,from,to,owner,at}] (at = mili giây lúc nhận); x.working: Set agent đang hoạt động live.
+// Thứ tự ưu tiên: Need Hiring > nhất thời (nhận / giao / ăn mừng / bị trả về, TRANS_MS sau sự kiện) > working (wip>0 hoặc live) > idle.
+const TRANS_PRIO={upset:4,celebrating:3,receiving:2,'handing-off':1};
+function roleInEvent(e,id){
+  if(!e||e.from===e.to&&e.event!=='accepted')return null;
+  if(e.event==='rejected')return e.to===id?'upset':e.from===id?'handing-off':null;
+  if(e.event==='accepted')return e.to===id||e.from===id||e.owner===id?'celebrating':null;
+  if(['assigned','handoff','requested','escalated','decided'].includes(e.event))return e.from===id?'handing-off':e.to===id?'receiving':null;
+  return null;
+}
+function transientFor(id,x,now){
+  let best=null;
+  for(const e of x.recent||[]){
+    const age=now-e.at;if(age<0||age>=TRANS_MS)continue;
+    const st=roleInEvent(e,id);if(!st)continue;
+    if(!best||e.at>best.at||(e.at===best.at&&TRANS_PRIO[st]>TRANS_PRIO[best.state]))best={state:st,at:e.at,ev:e};
+  }
+  return best;
+}
+function characterState(id,x,now){
+  const m=x.team.find(r=>r.id===id);
+  if(m&&m.status!=='Hired')return 'hiring';
+  const t=transientFor(id,x,now);if(t)return t.state;
+  if((x.working&&x.working.has(id))||(m&&m.wip>0))return 'working';
+  return 'idle';
+}
+const CHAR_LABEL={idle:'Rảnh',working:'Đang làm',receiving:'Vừa nhận việc','handing-off':'Vừa giao việc',celebrating:'Hoàn thành',upset:'Bị trả về',hiring:'Chưa tuyển'};
+let stateTimer=0;
+
 function drawFlow(x){
   const box=$('flow');box.innerHTML='';
   const W=Math.max(300,box.clientWidth),narrow=W<560,H=narrow?510:420;
@@ -397,16 +526,27 @@ function drawFlow(x){
   const live=$('flow-live');
   if(live)live.textContent=act.length?act.reduce((n,r)=>n+r.tasks.length,0)+' việc đang chạy trên '+act.length+' đường':'Không có việc nào đang chạy';
   const working=new Map(activeAgents().map(a=>[a.agent,a]));
+  const now=Date.now();
   Object.keys(pos).forEach(k=>{
-    const [cx,cy]=P(k),r=R(k),m=team.get(k),hiring=m&&m.status!=='Hired',w=working.get(k);
-    const n=svg.append('g').attr('transform',`translate(${cx},${cy})`).on('mousemove',ev=>show(ev,m?[[null,m.name+' · '+m.status],['Đang giữ',m.wip+' việc'],[m.label,m.output]].concat(w?[['Đang',w.action+' · '+ago(w.at)]]:[]):[[null,'Việc đã hoàn thành']])).on('mouseleave',hide);
+    const [cx,cy]=P(k),r=R(k),L=Math.max(r,20),m=team.get(k),hiring=m&&m.status!=='Hired',w=working.get(k);
+    const st=characterState(k,x,now),tr=transientFor(k,x,now);
+    const n=svg.append('g').attr('transform',`translate(${cx},${cy})`).on('mousemove',ev=>show(ev,m?[[null,m.name+' · '+m.status],['Đang giữ',m.wip+' việc'],[m.label,m.output]].concat(w?[['Đang',w.action+' · '+ago(w.at)]]:[],[['Trạng thái',CHAR_LABEL[st]]]):[[null,'Việc đã hoàn thành'],['Trạng thái',CHAR_LABEL[st]]])).on('mouseleave',hide);
     if(act.some(a=>a.doing&&a.to===k))n.append('circle').attr('class','run-glow').attr('r',r+5);
-    if(w&&!hiring){n.append('circle').attr('class','act-ring').attr('r',r+2);n.append('text').attr('y',r+28).attr('text-anchor','middle').attr('fill','var(--ok)').style('font-size','11.5px').text(w.action)}
+    if(w&&!hiring){n.append('circle').attr('class','act-ring').attr('r',r+2);n.append('text').attr('y',L+29).attr('text-anchor','middle').attr('fill','var(--ok)').style('font-size','11.5px').text(w.action)}
     n.append('circle').attr('r',r).attr('fill',k==='done'?'var(--bg)':'var(--panel)').attr('stroke',hiring?'var(--axis)':(m&&m.wip>0?'var(--accent)':'var(--axis)')).attr('stroke-width',m&&m.wip>0&&!hiring?2:1.25).attr('stroke-dasharray',hiring?'4 3':null);
-    if(m)n.append('text').attr('text-anchor','middle').attr('dominant-baseline','central').attr('fill',hiring?'var(--muted)':'var(--fg)').style('font-size','12px').text(hiring?'?':m.wip);
-    n.append('text').attr('y',r+14).attr('text-anchor','middle').attr('fill',hiring?'var(--muted)':'var(--fg)').style('font-size','12px').text(m?m.name:'Hoàn thành');
-    if(hiring)n.append('text').attr('y',r+28).attr('text-anchor','middle').attr('fill','var(--warn)').style('font-size','12px').text('Need Hiring');
+    let dx=28,dy=0;
+    if(tr&&tr.state==='handing-off'&&pos[tr.ev.to]){const [tx,ty]=P(tr.ev.to),l=Math.hypot(tx-cx,ty-cy)||1;dx=Math.round((tx-cx)/l*28);dy=Math.round((ty-cy)/l*28)}
+    const cg=n.append('g').attr('class',`chr st-${st} role-${k}`).attr('data-agent',k).attr('data-state',st).style('--dx',dx+'px').style('--dy',dy+'px');
+    cg.append('g').attr('transform',`translate(${-GW*PX/2},-28)`).append('g').attr('class','chr-anim').html(spriteMarkup(hiring||!ROLES[k]?'_':k));
+    if(m){const bg=n.append('g').attr('class','wip-badge').attr('transform',`translate(${Math.max(r,16)+8},12)`);
+      bg.append('circle').attr('r',8).attr('fill','var(--panel)').attr('stroke',m.wip>0&&!hiring?'var(--accent)':'var(--axis)').attr('stroke-width',1.25).attr('stroke-dasharray',hiring?'3 2':null);
+      bg.append('text').attr('text-anchor','middle').attr('dominant-baseline','central').attr('fill',hiring?'var(--muted)':'var(--fg)').style('font-size','11px').text(hiring?'?':m.wip)}
+    n.append('text').attr('y',L+15).attr('text-anchor','middle').attr('fill',hiring?'var(--muted)':'var(--fg)').style('font-size','12px').text(m?m.name:'Hoàn thành');
+    if(hiring)n.append('text').attr('y',L+29).attr('text-anchor','middle').attr('fill','var(--warn)').style('font-size','12px').text('Need Hiring');
   });
+  clearTimeout(stateTimer);
+  const nextEnd=Math.min(...(x.recent||[]).map(e=>e.at+TRANS_MS-now).filter(v=>v>0));
+  if(isFinite(nextEnd))stateTimer=setTimeout(scheduleRender,nextEnd+30);
   if(!flows.length)svg.append('text').attr('x',W/2).attr('y',H-6).attr('text-anchor','middle').attr('fill','var(--muted)').style('font-size','12px').text('Chưa có lần bàn giao nào');
 }
 
@@ -466,6 +606,8 @@ function render(){
   if(!D)return;
   for(const [k,t] of fresh)if(Date.now()-t>6000)fresh.delete(k);
   const x=derive(merged());
+  x.working=new Set(activeAgents().map(a=>a.agent));
+  x.recent=x.events.filter(e=>fresh.has(evKey(e))).map(e=>({event:e.event,from:e.from,to:e.to,owner:(x.tasks.find(t=>t.id===e.task)||{}).owner,at:fresh.get(evKey(e))}));
   drawTeam(x);drawHeader(x,D.generated_at);drawAlerts(x);drawTimeline(x);drawBoard(x);drawFlow(x);drawFeed(x);
 }
 
@@ -473,7 +615,8 @@ async function load(){
   try{
     const res=await fetch(DATA_URL+'?t='+Date.now(),{cache:'no-store'});
     if(!res.ok)throw new Error('HTTP '+res.status);
-    D=await res.json();
+    const prev=D;D=await res.json();
+    if(prev){const old=new Set(prev.events.map(evKey));D.events.forEach(e=>{const k=evKey(e);if(!old.has(k)&&!liveEvents.has(k))fresh.set(k,Date.now())})}
     $('banner').style.display='none';
     render();
   }catch(err){
