@@ -529,6 +529,7 @@ function characterState(id,x,now){
 }
 const CHAR_LABEL={revising:'Đang sửa spec',idle:'Rảnh',working:'Đang làm',receiving:'Vừa nhận việc','handing-off':'Vừa giao việc',celebrating:'Hoàn thành',upset:'Bị trả về',hiring:'Chưa tuyển'};
 let stateTimer=0;
+const routeCache={sig:'',routes:new Map()};
 
 function drawFlow(x){
   const box=$('flow');box.innerHTML='';
@@ -547,43 +548,62 @@ function drawFlow(x){
     const tw=tip.node().offsetWidth,th=tip.node().offsetHeight;let px=ev.clientX-rect.left+12,py=ev.clientY-rect.top-th-8;if(px+tw>rect.width)px=rect.width-tw-4;if(py<0)py=ev.clientY-rect.top+14;tip.style('left',px+'px').style('top',py+'px').style('opacity',1)};
   const hide=()=>tip.style('opacity',0);
   // vùng nhãn nhân vật (tên, vai, dòng thứ ba) và nút, đo bằng chữ thật: đường, huy hiệu và nhãn trên đường tránh các vùng này
-  const taken=[],tags=[],roleBox=[],nameBox=[],overlap=(a,b)=>Math.max(0,Math.min(a[0]+a[2],b[0]+b[2])-Math.max(a[0],b[0]))*Math.max(0,Math.min(a[1]+a[3],b[1]+b[3])-Math.max(a[1],b[1]));
+  const taken=[],tags=[],edgePts=[],roleBox=[],nameBox=[],overlap=(a,b)=>Math.max(0,Math.min(a[0]+a[2],b[0]+b[2])-Math.max(a[0],b[0]))*Math.max(0,Math.min(a[1]+a[3],b[1]+b[3])-Math.max(a[1],b[1]));
   const tw=(txt,fs)=>{const t=svg.append('text').style('font-size',fs+'px').text(txt),w=t.node().getComputedTextLength();t.remove();return w};
   Object.keys(pos).forEach(k=>{const [cx,cy]=P(k),L=Math.max(R(k),20),m=team.get(k);
     taken.push([cx-L-2,cy-L-10,2*L+30,2*L+12]);
-    const line=(txt,dy,fs,list)=>{const w=tw(txt,fs)+6,b=[cx-w/2,cy+L+dy-fs,w,fs+5];taken.push(b);if(list)list.push(b)};
+    const line=(txt,dy,fs,list)=>{const w0=tw(txt,fs),w=w0+6;taken.push([cx-w/2,cy+L+dy-fs,w,fs+5]);if(list)list.push([cx-w0/2,cy+L+dy-fs+1,w0,fs+2])};
     line(m?m.name:'Hoàn thành',15,12,nameBox);if(m){line(m.role,30,10.5,roleBox);line('Need Hiring',45,12)}});
-  // Đường bàn giao là cung bậc hai. Thử vài độ cong, hai phía (cong mặc định trước), lấy đường không cắt nhãn vai,
-  // ít cắt tên và nút khác nhất. flip: ưu tiên phía ngược lại, để đường spec không chồng lên đường rework cùng hai đầu.
+  // Đường bàn giao là cung bậc hai. Mỗi đường thử nhiều độ cong, hai phía và điểm bám trên viền nút; chọn đường không cắt nhãn vai,
+  // ít cắt tên, tách xa các đường khác (nhất là cùng cặp nút) để còn chỗ cho nhãn bậc, và không đi vòng quá 1,7 lần khoảng cách hai tâm.
+  // flip: ưu tiên phía ngược lại (đường spec). Giải lần lượt rồi chỉnh lại 2 vòng cho mỗi đường né các đường còn lại; kết quả nhớ theo bố cục.
   const routes=new Map();
-  const edge=(a,b,flip)=>{
-    const key=a+'>'+b+(flip?'f':'');if(routes.has(key))return routes.get(key);
+  const solve=(a,b,flip,others)=>{
     const [x1,y1]=P(a),[x2,y2]=P(b),dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy)||1,flat=Math.abs(dy)<1;
-    const nx=flat?0:-dy/len,ny=flat?-1:dx/len,base=flat?30+len*.12:18;
-    const inside=(px,py,b)=>px>b[0]-2&&px<b[0]+b[2]+2&&py>b[1]-2&&py<b[1]+b[3]+2;
-    let best=null,idx=0;
+    const nx=flat?0:-dy/len,ny=flat?-1:dx/len,base=flat?30+len*.12:18,pair=[a,b].sort().join('~');
+    const inside=(px,py,b)=>px>b[0]&&px<b[0]+b[2]&&py>b[1]&&py<b[1]+b[3];
     const tx=dx/len,ty=dy/len,rot=(vx,vy,deg)=>{const c=Math.cos(deg*Math.PI/180),n=Math.sin(deg*Math.PI/180);return [vx*c-vy*n,vx*n+vy*c]};
     // điểm bám trên viền nút cũng được xoay (0, ±45, ±80 độ), để đường rời nút từ bên hông khi phía dưới là nhãn
     const ANG=[[0,0],[0,45],[0,-45],[45,0],[-45,0],[45,45],[-45,-45],[45,-45],[-45,45],[0,80],[0,-80],[80,0],[-80,0],[80,80],[-80,-80],[80,-80],[-80,80]];
+    const N=24;let best=null,idx=0;
     search:for(const [ra,rb] of ANG)for(const shift of [0,-40,40])for(const extra of [0,14,30,50,75,100,130,160])for(const sg of (flip?[-1,1]:[1,-1])){
       const cx=(x1+x2)/2+sg*nx*(base+extra)+tx*shift,cy=(y1+y2)/2+sg*ny*(base+extra)+ty*shift;
       const ua=Math.hypot(cx-x1,cy-y1),ub=Math.hypot(cx-x2,cy-y2);
       const [ax,ay]=rot((cx-x1)/ua,(cy-y1)/ua,ra),[bx,by]=rot((cx-x2)/ub,(cy-y2)/ub,rb);
       const s0=[x1+ax*R(a),y1+ay*R(a)],e0=[x2+bx*(R(b)+3),y2+by*(R(b)+3)];
-      let bad=0;
-      for(let i=1;i<40;i++){const t=i/40,u=1-t,px=u*u*s0[0]+2*u*t*cx+t*t*e0[0],py=u*u*s0[1]+2*u*t*cy+t*t*e0[1];
+      let bad=0,plen=0,lx=s0[0],ly=s0[1];const pts=[];
+      for(let i=1;i<N;i++){const t=i/N,u=1-t,px=u*u*s0[0]+2*u*t*cx+t*t*e0[0],py=u*u*s0[1]+2*u*t*cy+t*t*e0[1];
         if(roleBox.some(q=>inside(px,py,q)))bad+=1000;
         if(nameBox.some(q=>inside(px,py,q)))bad+=10;
-        if(px<4||px>W-4||py<0||py>H)bad+=200}
+        if(px<4||px>W-4||py<0||py>H)bad+=200;
+        if(i>4&&i<N-4)for(const o of others){const d=Math.hypot(o[0]-px,o[1]-py),same=o[2]===pair,lim=same?26:30;if(d<lim){bad+=(lim-d)/lim*(same?60:12);break}}
+        pts.push([px,py]);
+        plen+=Math.hypot(px-lx,py-ly);lx=px;ly=py}
+      if(plen>1.7*len)bad+=5000;  // đường đi vòng quá xa là vẽ lại bố cục
       const sc=bad+idx++*.001;
-      if(!best||sc<best.sc)best={sc,d:`M${s0[0]},${s0[1]}Q${cx},${cy} ${e0[0]},${e0[1]}`};
+      if(!best||sc<best.sc)best={sc,pair,pts:pts.filter((_,i)=>i%2===0).map(q=>[q[0],q[1],pair]),d:`M${s0[0]},${s0[1]}Q${cx},${cy} ${e0[0]},${e0[1]}`};
       if(sc<1)break search;
     }
-    routes.set(key,best.d);return best.d};
+    return best;
+  };
+  const edgeKey=(a,b,flip)=>a+'>'+b+(flip?'f':'');
+  const edge=(a,b,flip)=>(routes.get(edgeKey(a,b,flip))||{}).d;
   const g=svg.append('g');
   const flows=x.flows.filter(r=>pos[r.from]&&pos[r.to]);
   const act=x.active.filter(r=>pos[r.from]&&pos[r.to]).sort((p,q)=>p.since<q.since?1:p.since>q.since?-1:0);
   const dim=act.length?0.45:1;
+  {
+    const want=[],seen=new Set(),add=(a,b,f)=>{const k=edgeKey(a,b,f);if(!seen.has(k)){seen.add(k);want.push([k,a,b,f])}};
+    flows.forEach(r=>{if(r.handoffs>0)add(r.from,r.to,false);if(r.rejects>0)add(r.to,r.from,false)});
+    act.forEach(r=>add(r.from,r.to,!!r.spec));
+    const sig=[W,H,want.map(w=>w[0]).join(','),Object.keys(pos).map(k=>(team.get(k)||{}).role+'|'+((team.get(k)||{}).name)+'|'+R(k)).join(';')].join('#');
+    if(routeCache.sig!==sig){
+      const store=new Map(),others=skip=>{const o=[];for(const [k,v] of store)if(k!==skip)o.push(...v.pts);return o};
+      for(let pass=0;pass<3;pass++)want.forEach(([k,a,b,f])=>{store.set(k,solve(a,b,f,others(k)))});
+      routeCache.sig=sig;routeCache.routes=store;
+    }
+    routeCache.routes.forEach((v,k)=>routes.set(k,v));
+  }
   flows.forEach(r=>{
     if(r.handoffs>0)g.append('path').attr('d',edge(r.from,r.to)).attr('fill','none').attr('stroke','var(--axis)').attr('stroke-width',Math.min(1+r.handoffs*.6,6)).attr('stroke-linecap','round').attr('marker-end','url(#ah)').attr('opacity',dim).on('mousemove',ev=>show(ev,[[null,r.from==='capu'&&r.to==='chief-of-staff'?'Capu giao việc → Chief of Staff':nm(r.from)+' → '+nm(r.to)],[r.from==='capu'&&r.to==='chief-of-staff'?'Lần giao việc':'Lần bàn giao',r.handoffs]])).on('mouseleave',hide);
     if(r.rejects>0)g.append('path').attr('d',edge(r.to,r.from)).attr('fill','none').attr('stroke','var(--bad)').attr('stroke-width',Math.min(1+r.rejects*.8,6)).attr('stroke-dasharray','5 4').attr('marker-end','url(#ar)').attr('opacity',dim).on('mousemove',ev=>show(ev,[[null,nm(r.to)+' trả về '+nm(r.from)],['Lần trả về',r.rejects]])).on('mouseleave',hide);
@@ -598,7 +618,9 @@ function drawFlow(x){
     if(animate)ag.append('path').attr('class','run-flow').attr('data-from',r.from).attr('data-to',r.to).attr('data-speed',r.fast?'fast':'slow').attr('d',d).style('--dur',r.fast?'1s':'3s');
     const lines=kind==='review'?(()=>{const ts=TIERS.filter(k=>reviews.some(t=>tierOf(t)===k));return [[ts.join('·'),'tier']].concat(ts.includes('C')?[['chờ anh merge','await-merge']]:[])})()
       :r.spec?[['Về spec'+(r.tasks.length>1?' ×'+r.tasks.length:''),'spec-edge']]:[];
-    tags.push({r,node:p.node(),col,lines,badge:r.tasks.length>1&&!r.spec});
+    const node=p.node(),pts=[];for(let q=0;q<=node.getTotalLength();q+=2)pts.push(node.getPointAtLength(q));
+    edgePts.push(pts);
+    tags.push({r,node,pts,col,lines,badge:r.tasks.length>1&&!r.spec});
   });
   // huy hiệu ×n và nhãn trên đường: thử nhiều điểm dọc đường (gần giữa trước), trên đường rồi lệch hai phía theo pháp tuyến;
   // lấy chỗ không đè tên, nhãn vai, nút nhân vật, huy hiệu và nhãn khác (lề 2px). Hết chỗ thì lấy chỗ ít đè nhất.
@@ -620,20 +642,66 @@ function drawFlow(x){
     }
     return best;
   }
-  tags.forEach(({r,node,col,lines,badge})=>{
-    if(badge){
-      const s=spot(node,28,18,true);
-      const b=ag.append('g').attr('class','run-badge').attr('transform',`translate(${s.cx},${s.cy})`).style('pointer-events','none');
-      b.append('rect').attr('x',-14).attr('y',-9).attr('width',28).attr('height',18).attr('rx',9).attr('fill','var(--panel)').attr('stroke',col).attr('stroke-width',1.5);
-      b.append('text').attr('text-anchor','middle').attr('dominant-baseline','central').attr('fill','var(--fg)').style('font-size','11px').text('×'+r.tasks.length);
-      taken.push(s.box);
+  // Nhãn đường phải gắn rõ với đường của nó (spec T-020 mục 7): hoặc sát đường (cách <= 11px và xa mọi đường khác hơn
+  // đường của nó ít nhất 13px), hoặc có đường dẫn ngắn nối nhãn với đường. Đặt nhãn trước, huy hiệu sau.
+  const rectDist=(b,p)=>Math.hypot(Math.max(b[0]-p.x,0,p.x-(b[0]+b[2])),Math.max(b[1]-p.y,0,p.y-(b[1]+b[3])));
+  const nearest=(b,pts)=>{let m=1e9;for(const p of pts){const d=rectDist(b,p);if(d<m)m=d}return m};
+  const normalAt=(node,len,t)=>{const q=node.getPointAtLength(Math.min(len,len*t+2)),p0=node.getPointAtLength(Math.max(0,len*t-2)),tl=Math.hypot(q.x-p0.x,q.y-p0.y)||1;return [-(q.y-p0.y)/tl,(q.x-p0.x)/tl]};
+  function attach(tg,w,h){
+    const len=tg.node.getTotalLength(),others=edgePts.filter(e=>e!==tg.pts);
+    for(const t of TS){
+      const pt=tg.node.getPointAtLength(len*t),[nx,ny]=normalAt(tg.node,len,t),half=Math.abs(nx)*w/2+Math.abs(ny)*h/2;
+      for(const d of [0,half+3,-half-3,half+8,-half-8]){
+        const box=[pt.x+nx*d-w/2,pt.y+ny*d-h/2,w,h];
+        if(cost(box))continue;
+        const own=nearest(box,tg.pts);
+        if(own<=11&&others.every(e=>nearest(box,e)-own>=13))return {box};
+      }
     }
-    if(!lines.length)return;
-    // mỗi dòng tự tìm chỗ, để không dòng nào phải đè lên tên hay nhãn vai chỉ vì đi chung nhóm
+    return null;
+  }
+  function leaderTo(tg,w,h){
+    const len=tg.node.getTotalLength(),others=edgePts.filter(e=>e!==tg.pts);
+    const clearOf=(q,d)=>!others.some(e=>e.some(o=>Math.hypot(o.x-q.x,o.y-q.y)<d));
+    for(const g of [10,18,26,36,46,55])for(const t of TS){
+      const pt=tg.node.getPointAtLength(len*t);
+      if(!clearOf(pt,6))continue;
+      const [bx,by]=normalAt(tg.node,len,t);
+      for(const deg of [0,180,40,-40,140,-140,90,-90,65,-65,115,-115]){
+        const a=deg*Math.PI/180,nx=bx*Math.cos(a)-by*Math.sin(a),ny=bx*Math.sin(a)+by*Math.cos(a),half=Math.abs(nx)*w/2+Math.abs(ny)*h/2;
+        const box=[pt.x+nx*(g+half)-w/2,pt.y+ny*(g+half)-h/2,w,h];
+        if(cost(box))continue;
+        // đầu kia của đường dẫn là điểm của hộp nhãn gần chỗ bám nhất, lấn vào 2px
+        const ex=Math.min(Math.max(pt.x,box[0]+2),box[0]+w-2),ey=Math.min(Math.max(pt.y,box[1]+2),box[1]+h-2),ll=Math.hypot(ex-pt.x,ey-pt.y);
+        if(ll<4||ll>55)continue;
+        let ok=true;for(let k=0;k<=ll&&ok;k+=2){const q={x:pt.x+(ex-pt.x)*k/ll,y:pt.y+(ey-pt.y)*k/ll};
+          if(!clearOf(q,5)||roleBox.concat(nameBox).some(b=>q.x>b[0]&&q.x<b[0]+b[2]&&q.y>b[1]&&q.y<b[1]+b[3]))ok=false}
+        if(ok)return {box,lead:`M${pt.x},${pt.y}L${ex},${ey}`};
+      }
+    }
+    return null;
+  }
+  tags.forEach(tg=>{
+    const {r,col,lines}=tg;
     lines.forEach(([text,label])=>{
-      const s=spot(node,tw(text,11)+4,13,false);taken.push(s.box);
-      ag.append('text').attr('data-label',label).attr('data-from',r.from).attr('data-to',r.to).attr('x',s.cx).attr('y',s.box[1]+10).attr('text-anchor','middle').attr('fill',col).attr('stroke','var(--panel)').attr('stroke-width',3).attr('paint-order','stroke').style('font-size','11px').style('pointer-events','none').text(text);
+      // "chờ anh merge" rộng 78px; hết chỗ thì xuống hai dòng (chữ vẫn nguyên)
+      const variants=label==='await-merge'?[[text],['chờ anh ','merge']]:[[text]];
+      let s=null,rows=variants[0];
+      for(const v of variants){const w=Math.max(...v.map(t=>tw(t,11)))+4,h=13*v.length;s=attach(tg,w,h)||leaderTo(tg,w,h);if(s){rows=v;break}}
+      if(!s)s=spot(tg.node,tw(text,11)+4,13,false);
+      taken.push(s.box);
+      if(s.lead)ag.append('path').attr('data-leader','').attr('data-for',label).attr('data-from',r.from).attr('data-to',r.to).attr('d',s.lead).attr('fill','none').attr('stroke',col).attr('stroke-width',1.5).style('pointer-events','none');
+      const tx=ag.append('text').attr('data-label',label).attr('data-from',r.from).attr('data-to',r.to).attr('text-anchor','middle').attr('fill',col).attr('stroke','var(--panel)').attr('stroke-width',3).attr('paint-order','stroke').style('font-size','11px').style('pointer-events','none');
+      const cx=s.box[0]+s.box[2]/2;
+      rows.forEach((t,k)=>tx.append('tspan').attr('x',cx).attr('y',s.box[1]+10+13*k).text(t));
     });
+  });
+  tags.filter(tg=>tg.badge).forEach(({r,node,col})=>{
+    const s=spot(node,28,18,true);
+    const b=ag.append('g').attr('class','run-badge').attr('transform',`translate(${s.cx},${s.cy})`).style('pointer-events','none');
+    b.append('rect').attr('x',-14).attr('y',-9).attr('width',28).attr('height',18).attr('rx',9).attr('fill','var(--panel)').attr('stroke',col).attr('stroke-width',1.5);
+    b.append('text').attr('text-anchor','middle').attr('dominant-baseline','central').attr('fill','var(--fg)').style('font-size','11px').text('×'+r.tasks.length);
+    taken.push(s.box);
   });
   const live=$('flow-live');
   if(live)live.textContent=act.length?act.reduce((n,r)=>n+r.tasks.length,0)+' việc đang chạy trên '+act.length+' đường':'Không có việc nào đang chạy';
