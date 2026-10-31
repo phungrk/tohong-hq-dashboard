@@ -711,7 +711,7 @@ function setBusy(id,color,on){const g=$(id);if(!g)return;BUSY[id]=Math.max(0,(BU
   if(BUSY[id]>0){g.style.setProperty('--ping',color);g.classList.add('busy')}else g.classList.remove('busy')}
 function clearIdle(id,count){if(count>0)return;const g=$(id);if(!g)return;BUSY[id]=0;g.classList.remove('busy')}
 function ping(id,color){const g=$(id);if(!g)return;g.style.setProperty('--ping',color);g.classList.remove('ping');void g.getBoundingClientRect();g.classList.add('ping');clearTimeout(g._pt);g._pt=setTimeout(()=>g.classList.remove('ping'),600)}
-const NOHOLD=new Set(['p_kr_spec','p_src2','p_src3']);const HOLD_MS=1000,HOLD_OF={nd_insight:6000}; // thời gian khối "xử lý" tối thiểu trước khi dot đi ra // dot phụ: chỉ nháy khối, không tính vào bộ đếm đang xử lý
+const NOHOLD=new Set(['p_kr_spec','p_src2','p_src3','p_gate_kr','p_gate_kr2','p_insight_kr']);const HOLD_MS=1000,HOLD_OF={nd_insight:6000}; // dot phụ (đọc/ghi bể, nguồn phụ) chỉ nháy, không tính bộ đếm; HOLD = thời gian xử lý tối thiểu trước khi dot đi raconst HOLD_MS=1000,HOLD_OF={nd_insight:6000}; // thời gian khối "xử lý" tối thiểu trước khi dot đi ra // dot phụ: chỉ nháy khối, không tính vào bộ đếm đang xử lý
 function pulse(pathId,color){
   if(reduceMotion)return;const path=$(pathId),layer=$('fx_f');if(!path||!layer||MFX.length>60)return;
   const [from,to]=PATH_NODES[pathId]||[];const now=performance.now();const dur=1400;
