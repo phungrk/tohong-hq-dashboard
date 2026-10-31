@@ -10,3 +10,5 @@ Dashboard live của công ty Tơ Hồng HQ, chạy trên GitHub Pages: https://
 Khi chuyển sang Cloudflare Pages: deploy nguyên thư mục này, đổi `DATA_URL` trong `index.html` nếu nguồn dữ liệu đổi.
 
 Kiểm nhân vật Bản đồ luồng (Playwright, dữ liệu và kênh live giả): `D3=/đường/dẫn/d3.min.js OUT=/thư/mục/ảnh node tests/characters.js`
+
+Bảng **Mô hình Eval-Gated 2029** (ADR-010 của tohong-hq) đặt sổ cái lên sơ đồ vận hành: số trên khối là việc đang ở đó (theo `owner` + `state`), dot chạy theo sự kiện thật (live hoặc sự kiện mới sau mỗi lần tải), khối giữ màu từ lúc nhận dot tới lúc dot đi ra; bể đọc `model.invariants` trong `dashboard.json` (cần `export_dashboard.py` bản ADR-010; thiếu thì hiện 0). Kiểm: `D3=… OUT=… node tests/model.js`.
