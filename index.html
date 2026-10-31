@@ -704,11 +704,12 @@ function drawFeed(x){
 const MC={spec:'#14754d',code:'#2b7fb8',back:'#d9931f',bad:'#d33',ins:'#8a5cf6'};
 const PATH_NODES={p_intent_spec:['nd_intents','nd_spec'],p_kr_spec:['nd_kr','nd_spec'],p_spec_gate:['nd_spec','gt_spec'],p_gate_exec:['gt_spec','nd_exec'],p_gate_respec:['gt_spec','nd_respec'],p_respec_spec:['nd_respec','nd_spec'],p_gate_kr:['gt_spec','nd_kr'],p_exec_gate:['nd_exec','gt_code'],p_gate_rework:['gt_code','nd_rework'],p_rework_exec:['nd_rework','nd_exec'],p_gate_respec2:['gt_code','nd_respec'],p_gate_capu:['gt_code','nd_capu'],p_capu_exec:['nd_capu','nd_exec'],p_gate_kr2:['gt_code','nd_kr'],p_kr_gate:['nd_kr','gt_code'],p_gate_rel:['gt_code','nd_rel'],p_capu_res:['nd_capu','nd_rel'],p_rel_res:['nd_rel','nd_prod'],p_res_insight:['nd_prod','nd_insight'],p_insight_intent:['nd_insight','nd_intents'],p_insight_kr:['nd_insight','nd_kr'],p_src1:['src_data','nd_insight'],p_src2:['src_inc','nd_insight'],p_src3:['src_fb','nd_insight']};
 const HOLD=new Set(['nd_spec','nd_respec','gt_spec','nd_exec','nd_rework','gt_code','nd_capu','nd_rel','nd_insight']);
-const MFX=[],ARRIVE={},BUSY={},animated=new Set();let fxRaf=0;
+const MFX=[],ARRIVE={},BUSY={},animated=new Set();let fxRaf=0,lastReports=null;
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-function setBusy(id,color,on){const g=$(id);if(!g)return;BUSY[id]=on?(BUSY[id]||0)+1:0;
-  if(BUSY[id]>0){g.style.setProperty('--ping',color);g.classList.add('busy');clearTimeout(g._bt);g._bt=setTimeout(()=>{BUSY[id]=0;g.classList.remove('busy')},90000)}
-  else{g.classList.remove('busy');clearTimeout(g._bt)}}
+// Khối giữ màu khi còn ít nhất một dot đã chạm mà chưa đi ra; không tự tắt theo thời gian. Sổ cái nói khối trống thì tắt (clearIdle).
+function setBusy(id,color,on){const g=$(id);if(!g)return;BUSY[id]=Math.max(0,(BUSY[id]||0)+(on?1:-1));
+  if(BUSY[id]>0){g.style.setProperty('--ping',color);g.classList.add('busy')}else g.classList.remove('busy')}
+function clearIdle(id,count){if(count>0)return;const g=$(id);if(!g)return;BUSY[id]=0;g.classList.remove('busy')}
 function ping(id,color){const g=$(id);if(!g)return;g.style.setProperty('--ping',color);g.classList.remove('ping');void g.getBoundingClientRect();g.classList.add('ping');clearTimeout(g._pt);g._pt=setTimeout(()=>g.classList.remove('ping'),600)}
 function pulse(pathId,color){
   if(reduceMotion)return;const path=$(pathId),layer=$('fx_f');if(!path||!layer||MFX.length>60)return;
@@ -744,7 +745,6 @@ function pulsesFor(e,task){
   else if(e.event==='evalplus')out.push(['p_gate_kr2',MC.ins],['p_gate_rework',MC.ins]);
   else if(e.event==='escalated'&&e.to==='capu')out.push(['p_gate_capu',MC.bad]);
   else if(e.event==='decided')out.push(['p_capu_exec',MC.back]);
-  else if(e.event==='file_written'&&/^insights\//.test(e.detail||''))out.push(['p_src1',MC.ins],['p_insight_kr',MC.ins],['p_insight_intent',MC.ins]);
   return out;
 }
 function glyphs(id,x,y,n,lit,kind,inv){
@@ -781,6 +781,12 @@ function drawModel(x){
   glyphs('g_gate',492,152,hired.has('spec-critic')?1:0,w.has('spec-critic')?1:0,'r',true);glyphs('g_gate2',752,304,hired.has('adversary')?1:0,w.has('adversary')||w.has('reviewer')?1:0,'r',true);
   glyphs('g_exec',668,134,Math.max(1,execDoing.length),w.has('engineering')?Math.max(1,execDoing.length):0,'r');glyphs('g_rework',568,314,1,execRw.length&&w.has('engineering')?1:0,'r');
   glyphs('g_capu',846,156,1,w.has('capu')||w.has('chief-of-staff')?1:0,'h');glyphs('g_insight',48,626,hired.has('insight')?1:0,w.has('insight')?1:0,'r');
+  // sổ cái nói khối trống → tắt màu (không chờ dot đi ra)
+  clearIdle('nd_spec',specDoing.length+specGate.length);clearIdle('nd_respec',specRw.length);clearIdle('gt_spec',specGate.length);
+  clearIdle('nd_exec',execDoing.length+execNew.length);clearIdle('nd_rework',execRw.length);clearIdle('gt_code',codeGate.length);clearIdle('nd_capu',esc.length+capuRead.length);
+  // Insight: báo cáo tuần mới xuất hiện trong dashboard.json → dot từ nguồn vào Insight, lên bể và lên Ý định
+  if(lastReports!==null&&(m.insight_reports||0)>lastReports){['p_src1','p_src2','p_src3'].forEach(q=>pulse(q,MC.ins));pulse('p_insight_kr',MC.ins);pulse('p_insight_intent',MC.ins)}
+  lastReports=m.insight_reports||0;
   const tmap=new Map(T.map(t=>[t.id,t]));
   (x.recent||[]).forEach(r=>{const k=r.key;if(!k||animated.has(k))return;animated.add(k);pulsesFor(r.e,tmap.get(r.e.task)).forEach(([p,c])=>pulse(p,c))});
   const ml=$('model-live');if(ml)ml.textContent=liveState==='on'?'dot = sự kiện trực tiếp':'dot = sự kiện mới sau mỗi lần tải';
