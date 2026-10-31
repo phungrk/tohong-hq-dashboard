@@ -40,7 +40,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); 
     send({ id: 'E-2', event: 'rejected', from: 'adversary', to: 'product', task: 'T-001', state: 'spec', holder: 'product', severity: 'blocker' });
     await page.waitForTimeout(400);
     ok(!(await page.$eval('#gt_code', e => e.classList.contains('busy'))), name + ': Code Gate tắt màu khi dot đi ra');
-    await page.waitForTimeout(1800);
+    await page.waitForTimeout(2800);
     ok(await page.$eval('#nd_respec', e => e.classList.contains('busy')), name + ': Spec rework lên màu');
     ok(!(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)), name + ': không tràn ngang');
     ok(errors.length === 0, name + ': không lỗi console (' + errors.join('; ') + ')');

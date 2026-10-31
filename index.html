@@ -711,19 +711,20 @@ function setBusy(id,color,on){const g=$(id);if(!g)return;BUSY[id]=Math.max(0,(BU
   if(BUSY[id]>0){g.style.setProperty('--ping',color);g.classList.add('busy')}else g.classList.remove('busy')}
 function clearIdle(id,count){if(count>0)return;const g=$(id);if(!g)return;BUSY[id]=0;g.classList.remove('busy')}
 function ping(id,color){const g=$(id);if(!g)return;g.style.setProperty('--ping',color);g.classList.remove('ping');void g.getBoundingClientRect();g.classList.add('ping');clearTimeout(g._pt);g._pt=setTimeout(()=>g.classList.remove('ping'),600)}
+const NOHOLD=new Set(['p_kr_spec','p_src2','p_src3']);const HOLD_MS=1000,HOLD_OF={nd_insight:6000}; // thời gian khối "xử lý" tối thiểu trước khi dot đi ra // dot phụ: chỉ nháy khối, không tính vào bộ đếm đang xử lý
 function pulse(pathId,color){
   if(reduceMotion)return;const path=$(pathId),layer=$('fx_f');if(!path||!layer||MFX.length>60)return;
   const [from,to]=PATH_NODES[pathId]||[];const now=performance.now();const dur=1400;
-  let start=now+Math.random()*100;if(from&&ARRIVE[from]&&ARRIVE[from]>start)start=ARRIVE[from]+150;
+  let start=now+Math.random()*100;{const h=HOLD_OF[from]||HOLD_MS;if(from&&ARRIVE[from]&&ARRIVE[from]+h>start)start=ARRIVE[from]+h;} // khối "xử lý" ít nhất HOLD_MS trước khi dot đi ra
   const end=start+dur;if(to)ARRIVE[to]=Math.max(ARRIVE[to]||0,end);
   const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('r','4.5');c.setAttribute('fill',color);c.setAttribute('opacity','0');layer.appendChild(c);
-  MFX.push({c,path,len:path.getTotalLength(),start,dur,from,to,color,started:false});
+  MFX.push({c,path,len:path.getTotalLength(),start,dur,from,to,color,started:false,hold:!NOHOLD.has(pathId)});
   if(!fxRaf)fxRaf=requestAnimationFrame(fxFrame);
 }
 function fxFrame(now){
   for(let i=MFX.length-1;i>=0;i--){const f=MFX[i];const k=(now-f.start)/f.dur;if(k<0)continue;
-    if(!f.started){f.started=true;if(f.from&&HOLD.has(f.from)&&f.from!==f.to)setBusy(f.from,f.color,false)}
-    if(k>=1){f.c.remove();MFX.splice(i,1);if(f.to){if(HOLD.has(f.to))setBusy(f.to,f.color,true);else ping(f.to,f.color)}continue}
+    if(!f.started){f.started=true;if(f.hold&&f.from&&HOLD.has(f.from)&&f.from!==f.to)setBusy(f.from,f.color,false)}
+    if(k>=1){f.c.remove();MFX.splice(i,1);if(f.to){if(f.hold&&HOLD.has(f.to))setBusy(f.to,f.color,true);else ping(f.to,f.color)}continue}
     const pt=f.path.getPointAtLength(k*f.len);f.c.setAttribute('cx',pt.x);f.c.setAttribute('cy',pt.y);f.c.setAttribute('opacity',k<0.08?k/0.08:1)}
   fxRaf=MFX.length?requestAnimationFrame(fxFrame):0;
 }
@@ -782,7 +783,7 @@ function drawModel(x){
   glyphs('g_exec',668,134,Math.max(1,execDoing.length),w.has('engineering')?Math.max(1,execDoing.length):0,'r');glyphs('g_rework',568,314,1,execRw.length&&w.has('engineering')?1:0,'r');
   glyphs('g_capu',846,156,1,w.has('capu')||w.has('chief-of-staff')?1:0,'h');glyphs('g_insight',48,626,hired.has('insight')?1:0,w.has('insight')?1:0,'r');
   // sổ cái nói khối trống → tắt màu (không chờ dot đi ra)
-  clearIdle('nd_spec',specDoing.length+specGate.length);clearIdle('nd_respec',specRw.length);clearIdle('gt_spec',specGate.length);
+  clearIdle('nd_spec',specDoing.length);clearIdle('nd_rel',0);clearIdle('nd_respec',specRw.length);clearIdle('gt_spec',specGate.length);
   clearIdle('nd_exec',execDoing.length+execNew.length);clearIdle('nd_rework',execRw.length);clearIdle('gt_code',codeGate.length);clearIdle('nd_capu',esc.length+capuRead.length);
   // Insight: báo cáo tuần mới xuất hiện trong dashboard.json → dot từ nguồn vào Insight, lên bể và lên Ý định
   if(lastReports!==null&&(m.insight_reports||0)>lastReports){['p_src1','p_src2','p_src3'].forEach(q=>pulse(q,MC.ins));pulse('p_insight_kr',MC.ins);pulse('p_insight_intent',MC.ins)}
