@@ -802,7 +802,7 @@ function drawModel(x){
   glyphs('g_capu',846,156,1,w.has('capu')||w.has('chief-of-staff')?1:0,'h');glyphs('g_insight',48,626,hired.has('insight')?1:0,w.has('insight')?1:0,'r');
   // quy tắc A: khối sáng theo việc trong sổ cái, không cần dot
   const insBusy=T.some(t=>t.owner==='insight'&&(t.state==='doing'||t.state==='rework'));
-  STATECOL={nd_spec:specDoing.length?MC.spec:null,gt_spec:specGate.length?MC.spec:null,nd_respec:specRw.length?MC.back:null,nd_exec:execDoing.length?MC.code:null,nd_rework:execRw.length?MC.back:null,gt_code:codeGate.length?MC.code:null,
+  STATECOL={nd_intents:specNew.length?MC.spec:null,nd_spec:specDoing.length?MC.spec:null,gt_spec:specGate.length?MC.spec:null,nd_respec:specRw.length?MC.back:null,nd_exec:(execDoing.length||execNew.length)?MC.code:null,nd_rework:execRw.length?MC.back:null,gt_code:codeGate.length?MC.code:null,
     nd_capu:esc.length?MC.bad:(capuRead.length?MC.code:null),nd_insight:insBusy?MC.ins:null,nd_rel:null};
   Object.keys(STATECOL).forEach(applyLit);
   // Insight: báo cáo tuần mới trong dashboard.json → một dot nguồn → Insight → Ý định
