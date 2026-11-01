@@ -153,7 +153,6 @@ footer a{color:inherit}
 #model .res rect{fill:var(--panel);stroke:var(--ok);stroke-width:1.2}#model .res .t,#model .res .lbl,#model .res text{fill:var(--ok)}
 #model .res.kr rect{stroke:var(--accent)}#model .res.kr .t,#model .res.kr .lbl,#model .res.kr text{fill:var(--accent)}
 #model .rel rect{stroke:var(--accent);stroke-dasharray:4 3}
-#model .ic{color:var(--axis);fill:currentColor;stroke:none}#model .ic.on{color:var(--accent)}#model .ic.hum.on{color:#2b7fb8}#model .ic.inv{color:var(--axis)}#model .ic.inv.on{color:var(--gc)}
 #model .busy rect,#model .busy circle,#model .ping rect,#model .ping circle{stroke:var(--ping,var(--accent)) !important;stroke-width:3 !important}
 #model .node.busy rect,#model .node.ping rect{fill:color-mix(in srgb,var(--ping,var(--accent)) 18%,var(--panel))}
 #model .res.busy rect,#model .res.ping rect{fill:color-mix(in srgb,var(--ping,var(--accent)) 22%,var(--panel))}
@@ -163,6 +162,45 @@ footer a{color:inherit}
 #model .mlegend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px}
 #model .dotleg{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:4px}
 @media (prefers-reduced-motion:no-preference){#model .node rect,#model .res rect,#model .gate circle{transition:stroke .15s,stroke-width .15s,fill .15s}}
+/* Nhân vật trong khối (T-034): chỉ dùng path nên không dính luật rect/circle của khối sáng; chỉ animate transform/opacity */
+#model .mch{shape-rendering:crispEdges;pointer-events:none}
+#model .mch[data-state=idle]{opacity:.4}
+#model .mch .f{fill:var(--fg)}#model .mch .p{fill:var(--panel)}#model .mch .a{fill:var(--axis)}#model .mch .m{fill:var(--muted)}
+#model .mch .hands path{fill:var(--panel)}#model .mch[data-kind=human] .hands path{fill:#e6b98f}
+#model .mch [data-part=lamp]{fill:var(--f,var(--axis))}
+#model .mch [data-part=sweat],#model .mch [data-part=paper],#model .mch [data-part=speed],#model .mch [data-part=question]{opacity:0}
+#model .mch .sp{display:none;fill:var(--muted)}
+#model .mch[data-dir=right] .sd-r,#model .mch[data-dir=left] .sd-l,#model .mch[data-dir=down] .sd-d,#model .mch[data-dir=up] .sd-u{display:inline}
+#model .mch[data-state=work] [data-part=sweat]{opacity:1;animation:mc-sw 1.2s steps(1,end) infinite}
+#model .mch[data-state=give] [data-part=paper],#model .mch[data-state=take] [data-part=paper],#model .mch[data-state=give] [data-part=speed],#model .mch[data-state=wait] [data-part=question]{opacity:1}
+#model .mch[data-state=wait] [data-part=question]{animation:mc-q 1.2s steps(1,end) infinite}
+#model .mch[data-state=take] .hands{transform:translateY(-6px)}
+#model .mch[data-state=wait] .hr{transform:translate(-6px,-12px)}
+#model .mch .eyes{transform-box:fill-box;transform-origin:50% 50%}
+#model .mch[data-anim=blink] .eyes{animation:mc-bl 5s steps(1,end) infinite;animation-delay:var(--bd,0s)}
+#model .mch[data-anim=work] .mv{animation:mc-work .6s steps(1,end) infinite}
+#model .mch[data-anim=work] .hands{animation:mc-tap .3s steps(1,end) infinite}
+#model .mch[data-anim=work] [data-part=lamp]{animation:mc-lamp .8s steps(1,end) infinite}
+#model .mch[data-anim=wait] .mv{animation:mc-wait 1.6s steps(1,end) infinite}
+#model .mch[data-anim=take] .mv{animation:mc-take 1.2s steps(1,end) 1}
+#model .mch[data-anim=give][data-dir=right] .mv{animation:mc-gr 1.2s steps(1,end) 1}
+#model .mch[data-anim=give][data-dir=left] .mv{animation:mc-gl 1.2s steps(1,end) 1}
+#model .mch[data-anim=give][data-dir=down] .mv{animation:mc-gd 1.2s steps(1,end) 1}
+#model .mch[data-anim=give][data-dir=up] .mv{animation:mc-gu 1.2s steps(1,end) 1}
+@keyframes mc-bl{0%,94%{transform:scaleY(1)}95%,99%{transform:scaleY(.15)}}
+@keyframes mc-sw{0%{opacity:1;transform:translateY(0)}40%{opacity:1;transform:translateY(2px)}70%{opacity:0;transform:translateY(3px)}}
+@keyframes mc-q{0%{opacity:1}55%{opacity:0}}
+@keyframes mc-work{0%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes mc-tap{0%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes mc-lamp{0%{opacity:1}50%{opacity:.35}}
+@keyframes mc-wait{0%{transform:translateX(0)}25%{transform:translateX(2px)}50%{transform:translateX(0)}75%{transform:translateX(-2px)}}
+@keyframes mc-take{0%{transform:translateY(0)}10%{transform:translateY(-5px)}30%{transform:translateY(-5px)}45%{transform:translateY(-1px)}60%{transform:translateY(-3px)}80%{transform:translateY(0)}}
+@keyframes mc-gr{0%{transform:translateX(0)}12%{transform:translateX(4px)}30%{transform:translateX(8px)}60%{transform:translateX(8px)}75%{transform:translateX(4px)}90%{transform:translateX(0)}}
+@keyframes mc-gl{0%{transform:translateX(0)}12%{transform:translateX(-4px)}30%{transform:translateX(-8px)}60%{transform:translateX(-8px)}75%{transform:translateX(-4px)}90%{transform:translateX(0)}}
+@keyframes mc-gd{0%{transform:translateY(0)}12%{transform:translateY(4px)}30%{transform:translateY(8px)}60%{transform:translateY(8px)}75%{transform:translateY(4px)}90%{transform:translateY(0)}}
+@keyframes mc-gu{0%{transform:translateY(0)}12%{transform:translateY(-4px)}30%{transform:translateY(-8px)}60%{transform:translateY(-8px)}75%{transform:translateY(-4px)}90%{transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){#model .mch,#model .mch *,#model .bub,#model .bub *{animation:none !important;transition:none !important}}
+#fx_b{pointer-events:none}#fx_b text{font-family:inherit;fill:#222}#fx_b .bub rect,#fx_b .bub path{fill:#fff9d6;stroke:#7a6a20;stroke-width:1;vector-effect:non-scaling-stroke}
 @media (max-width:560px){.hide-n{display:none}#team th,#team td{padding-right:6px}#team th:last-child,#team td:last-child{padding-right:0}}
 @media (max-width:359px){#team .pill{white-space:normal;border-radius:8px}}
 </style>
@@ -209,15 +247,15 @@ footer a{color:inherit}
       <text class="lbl" x="730" y="24" text-anchor="middle">EXECUTE (AGENT)</text>
       <text class="lbl" x="500" y="44" text-anchor="middle" id="gateRev">Spec Gate: agent critic · Code Gate: máy</text>
 
-      <g class="node" id="nd_intents"><rect x="40" y="150" width="120" height="96" rx="10"/><text class="t" x="100" y="170" text-anchor="middle">Ý định</text><text class="n" x="100" y="202" text-anchor="middle">0</text><text class="cap" x="100" y="220" text-anchor="middle">0/0 viết được</text><g id="g_intents"></g></g>
-      <g class="node" id="nd_spec"><rect x="200" y="56" width="140" height="96" rx="10"/><text class="t" x="270" y="76" text-anchor="middle">Spec Writer</text><text class="n" x="270" y="108" text-anchor="middle">0</text><text class="cap" x="270" y="126" text-anchor="middle">đang viết / chờ</text><g id="g_spec"></g></g>
-      <g class="node" id="nd_respec"><rect x="200" y="236" width="140" height="96" rx="10"/><text class="t" x="270" y="256" text-anchor="middle">Spec rework</text><text class="n" x="270" y="288" text-anchor="middle">0</text><text class="cap" x="270" y="306" text-anchor="middle">Spec Writer sửa spec + eval</text><g id="g_respec"></g></g>
-      <g class="node" id="nd_exec"><rect x="660" y="56" width="140" height="96" rx="10"/><text class="t" x="730" y="76" text-anchor="middle">Agent code</text><text class="n" x="730" y="108" text-anchor="middle">0</text><text class="cap" x="730" y="126" text-anchor="middle">đang code / chờ agent</text><g id="g_exec"></g></g>
-      <g class="node" id="nd_rework"><rect x="560" y="236" width="130" height="96" rx="10"/><text class="t" x="625" y="256" text-anchor="middle">Code rework</text><text class="n" x="625" y="288" text-anchor="middle">0</text><text class="cap" x="625" y="306" text-anchor="middle">agent sửa code / chạy lại</text><g id="g_rework"></g></g>
-      <g class="node" id="nd_capu"><rect x="840" y="150" width="120" height="96" rx="10"/><text class="t" x="900" y="170" text-anchor="middle">Capu (người)</text><text class="n" x="900" y="202" text-anchor="middle">0</text><text class="cap" x="900" y="220" text-anchor="middle">chờ đọc · 0h còn</text><g id="g_capu"></g></g>
+      <g class="node" id="nd_intents"><rect x="40" y="150" width="120" height="96" rx="10"/><text class="t" x="100" y="170" text-anchor="middle">Ý định</text><text class="n" x="100" y="202" text-anchor="middle">0</text><text class="cap" x="100" y="220" text-anchor="middle">0/0 viết được</text></g>
+      <g class="node" id="nd_spec"><rect x="200" y="56" width="140" height="96" rx="10"/><text class="t" x="270" y="76" text-anchor="middle">Spec Writer</text><text class="n" x="270" y="108" text-anchor="middle">0</text><text class="cap" x="270" y="126" text-anchor="middle">đang viết / chờ</text></g>
+      <g class="node" id="nd_respec"><rect x="200" y="236" width="140" height="96" rx="10"/><text class="t" x="270" y="256" text-anchor="middle">Spec rework</text><text class="n" x="270" y="288" text-anchor="middle">0</text><text class="cap" x="270" y="306" text-anchor="middle">Spec Writer sửa spec + eval</text></g>
+      <g class="node" id="nd_exec"><rect x="660" y="56" width="140" height="96" rx="10"/><text class="t" x="730" y="76" text-anchor="middle">Agent code</text><text class="n" x="730" y="108" text-anchor="middle">0</text><text class="cap" x="730" y="126" text-anchor="middle">đang code / chờ agent</text></g>
+      <g class="node" id="nd_rework"><rect x="560" y="236" width="130" height="96" rx="10"/><text class="t" x="625" y="256" text-anchor="middle">Code rework</text><text class="n" x="625" y="288" text-anchor="middle">0</text><text class="cap" x="625" y="306" text-anchor="middle">agent sửa code / chạy lại</text></g>
+      <g class="node" id="nd_capu"><rect x="840" y="150" width="120" height="96" rx="10"/><text class="t" x="900" y="170" text-anchor="middle">Capu (người)</text><text class="n" x="900" y="202" text-anchor="middle">0</text><text class="cap" x="900" y="220" text-anchor="middle">chờ đọc · 0h còn</text></g>
 
-      <g class="gate" id="gt_spec" style="--gc:var(--accent)"><circle cx="500" cy="190" r="46" fill="var(--accent)"/><text x="500" y="178" text-anchor="middle" font-size="11">SPEC GATE</text><text x="500" y="191" text-anchor="middle" font-size="8.5" font-weight="400">critic: cách hiểu thứ 2?</text><text x="500" y="202" text-anchor="middle" font-size="8.5" font-weight="400">mâu thuẫn bất biến?</text><text x="500" y="214" text-anchor="middle" font-size="9.5" id="sgateQ">0 chờ</text><g id="g_gate"></g></g>
-      <g class="gate" id="gt_code" style="--gc:var(--water)"><circle cx="760" cy="340" r="44" fill="var(--water)"/><text x="760" y="330" text-anchor="middle" font-size="11">CODE GATE</text><text x="760" y="343" text-anchor="middle" font-size="8.5" font-weight="400">máy: 3 tầng eval</text><text x="760" y="354" text-anchor="middle" font-size="8.5" font-weight="400">+ agent đối kháng</text><text x="760" y="366" text-anchor="middle" font-size="9.5" id="gateQ">0</text><g id="g_gate2"></g></g>
+      <g class="gate" id="gt_spec" style="--gc:var(--accent)"><circle cx="500" cy="190" r="46" fill="var(--accent)"/><text x="500" y="178" text-anchor="middle" font-size="11">SPEC GATE</text><text x="500" y="191" text-anchor="middle" font-size="8.5" font-weight="400">critic: cách hiểu thứ 2?</text><text x="500" y="202" text-anchor="middle" font-size="8.5" font-weight="400">mâu thuẫn bất biến?</text><text x="500" y="214" text-anchor="middle" font-size="9.5" id="sgateQ">0 chờ</text></g>
+      <g class="gate" id="gt_code" style="--gc:var(--water)"><circle cx="760" cy="340" r="44" fill="var(--water)"/><text x="760" y="330" text-anchor="middle" font-size="11">CODE GATE</text><text x="760" y="343" text-anchor="middle" font-size="8.5" font-weight="400">máy: 3 tầng eval</text><text x="760" y="354" text-anchor="middle" font-size="8.5" font-weight="400">+ agent đối kháng</text><text x="760" y="366" text-anchor="middle" font-size="9.5" id="gateQ">0</text></g>
 
       <path id="p_intent_spec" class="arr" d="M160 176 C 180 130, 190 112, 200 104" marker-end="url(#ah)"/>
       <path id="p_spec_gate" class="arr" d="M340 108 C 400 120, 440 140, 462 162" marker-end="url(#ah)"/>
@@ -256,7 +294,7 @@ footer a{color:inherit}
       <path id="p_rel_res" class="arr" d="M770 540 L770 570" marker-end="url(#ah)"/>
       <g class="res" id="nd_prod"><rect x="650" y="572" width="240" height="66" rx="12"/><text class="t" x="770" y="592" text-anchor="middle" font-size="12">PRODUCTION</text><text id="resTxt" x="770" y="614" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" fill="var(--ok)">0 release · 0 có lỗi</text><text class="lbl" x="770" y="629" text-anchor="middle">code đang chạy, người dùng thật</text></g>
 
-      <g class="node" id="nd_insight"><rect x="40" y="572" width="160" height="72" rx="10"/><text class="t" x="120" y="592" text-anchor="middle">Insight</text><text class="cap" x="120" y="612" text-anchor="middle" id="insCap">0 báo cáo · 0 eval hồi quy</text><g id="g_insight"></g></g>
+      <g class="node" id="nd_insight"><rect x="40" y="572" width="160" height="72" rx="10"/><text class="t" x="120" y="592" text-anchor="middle">Insight</text><text class="cap" x="120" y="612" text-anchor="middle" id="insCap">0 báo cáo · 0 eval hồi quy</text></g>
       <g class="node" id="src_data"><rect x="40" y="680" width="160" height="26" rx="6"/><text class="cap" x="120" y="693" text-anchor="middle" dominant-baseline="central">Dữ liệu sản phẩm (log, sự kiện)</text></g>
       <g class="node" id="src_inc"><rect x="40" y="714" width="160" height="26" rx="6"/><text class="cap" x="120" y="727" text-anchor="middle" dominant-baseline="central">Sự cố production</text></g>
       <g class="node" id="src_fb"><rect x="40" y="748" width="160" height="26" rx="6"/><text class="cap" x="120" y="761" text-anchor="middle" dominant-baseline="central">Phản hồi người dùng, Slack</text></g>
@@ -270,7 +308,7 @@ footer a{color:inherit}
       <text class="lbl" x="106" y="500">báo cáo</text><text class="lbl" x="106" y="513">insight tuần</text>
       <path id="p_insight_kr" class="arr" d="M200 580 C 240 560, 270 520, 300 486" marker-end="url(#ah)"/>
       <text class="lbl" x="236" y="548" text-anchor="start">eval hồi quy,</text><text class="lbl" x="236" y="561" text-anchor="start">insight → bể</text>
-      <g class="fx" id="fx_f"></g>
+      <g id="chars"></g><g class="fx" id="fx_f"></g><g id="fx_b"></g>
     </svg>
       <div class="mlegend"><span><i class="dotleg" style="background:#14754d"></i>ý định / spec</span><span><i class="dotleg" style="background:#2b7fb8"></i>việc / code</span><span><i class="dotleg" style="background:#d9931f"></i>trả về / rework</span><span><i class="dotleg" style="background:#d33"></i>lỗi / leo thang</span><span><i class="dotleg" style="background:#8a5cf6"></i>eval sinh thêm / insight / đọc bể</span><span>Khối sáng = đang xử lý (có việc ở đó hoặc dot vừa tới)</span><span id="model-live"></span></div>
   </section>
@@ -705,22 +743,23 @@ function drawFeed(x){
 const MC={spec:'#14754d',code:'#2b7fb8',back:'#d9931f',bad:'#d33',ins:'#8a5cf6'};
 const PATH_NODES={p_intent_spec:['nd_intents','nd_spec'],p_kr_spec:['nd_kr','nd_spec'],p_spec_gate:['nd_spec','gt_spec'],p_gate_exec:['gt_spec','nd_exec'],p_gate_respec:['gt_spec','nd_respec'],p_respec_spec:['nd_respec','nd_spec'],p_gate_kr:['gt_spec','nd_kr'],p_exec_gate:['nd_exec','gt_code'],p_gate_rework:['gt_code','nd_rework'],p_rework_exec:['nd_rework','nd_exec'],p_gate_respec2:['gt_code','nd_respec'],p_gate_capu:['gt_code','nd_capu'],p_capu_exec:['nd_capu','nd_exec'],p_gate_kr2:['gt_code','nd_kr'],p_kr_gate:['nd_kr','gt_code'],p_gate_rel:['gt_code','nd_rel'],p_capu_res:['nd_capu','nd_rel'],p_rel_res:['nd_rel','nd_prod'],p_res_insight:['nd_prod','nd_insight'],p_insight_intent:['nd_insight','nd_intents'],p_insight_kr:['nd_insight','nd_kr'],p_src1:['src_data','nd_insight'],p_src2:['src_inc','nd_insight'],p_src3:['src_fb','nd_insight']};
 const HOLD=new Set(['nd_spec','nd_respec','gt_spec','nd_exec','nd_rework','gt_code','nd_capu','nd_rel','nd_insight']);
+const HAND=['Xong, giao đây!','Đã nhận!'];
 const MFX=[],ARRIVE={},HELD={},animated=new Set();let fxRaf=0,lastReports=null,holdTok=0,STATECOL={};
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const HOLD_MS=1000,CHAIN_MS=1200,HOLD_MAX=10000,PING_MS=600,DOT_CAP=12,LEG_MS=1400,SVGNS='http://www.w3.org/2000/svg';
 // Khối sáng = màu giữ của dot vừa tới (HELD, tối đa 10 giây hoặc tới khi có dot rời) hoặc màu theo sổ cái (STATECOL, quy tắc A).
 function applyLit(id){const g=$(id);if(!g)return;const h=HELD[id];const col=h?h.color:STATECOL[id];
-  if(col){g.style.setProperty('--ping',col);g.classList.add('busy')}else g.classList.remove('busy')}
+  if(col){g.style.setProperty('--ping',col);g.classList.add('busy')}else g.classList.remove('busy');chSync(id)}
 function hold(id,color){const tk=++holdTok;HELD[id]={color,tk};applyLit(id);setTimeout(()=>{if(HELD[id]&&HELD[id].tk===tk){delete HELD[id];applyLit(id)}},HOLD_MAX)}
 function release(id){if(HELD[id]){delete HELD[id];applyLit(id)}}
-function ping(id,color){const g=$(id);if(!g)return;g.style.setProperty('--ping',color);g.classList.remove('ping');void g.getBoundingClientRect();g.classList.add('ping');clearTimeout(g._pt);g._pt=setTimeout(()=>{g.classList.remove('ping');applyLit(id)},PING_MS)}
+function ping(id,color){const g=$(id);if(!g)return;g.style.setProperty('--ping',color);g.classList.remove('ping');void g.getBoundingClientRect();g.classList.add('ping');chSync(id);clearTimeout(g._pt);g._pt=setTimeout(()=>{g.classList.remove('ping');applyLit(id)},PING_MS)}
 function arrive(id,color){if(HOLD.has(id))hold(id,color);else ping(id,color)}
 // Một sự kiện = một dot (circle) đi lần lượt qua các chặng; dot đứng yên ở khối giữa 1,2 giây giữa hai chặng.
 function emit(legs){
   if(!legs||!legs.length)return;
   if(reduceMotion){
     const f0=(PATH_NODES[legs[0][0]]||[])[0];if(f0&&HOLD.has(f0))release(f0);
-    legs.forEach(([p,c],i)=>{const to=(PATH_NODES[p]||[])[1];if(!to)return;const last=i===legs.length-1;setTimeout(()=>{if(last)arrive(to,c);else ping(to,c)},i*PING_MS)});
+    legs.forEach(([p,c,t],i)=>{const [fr,to]=PATH_NODES[p]||[];if(!to)return;const last=i===legs.length-1;setTimeout(()=>{if(last)arrive(to,c);else ping(to,c);chAct(fr,'give',c,chDir(fr,to),t&&t[0]);chAct(to,'take',c,null,t&&t[1])},i*PING_MS)});
     return;
   }
   const layer=$('fx_f');if(!layer||layer.childNodes.length>=DOT_CAP||!$(legs[0][0]))return;
@@ -733,15 +772,15 @@ function setLeg(f,i){
   const [pathId,color]=f.legs[i];const [from,to]=PATH_NODES[pathId]||[];const now=performance.now();
   let start=i>0?now+CHAIN_MS:now+Math.random()*100;
   if(i===0&&from&&ARRIVE[from]&&ARRIVE[from]+HOLD_MS>start)start=ARRIVE[from]+HOLD_MS; // không rời khối sớm hơn 1,0 giây sau dot trước
-  f.i=i;f.path=$(pathId);f.len=f.path.getTotalLength();f.from=from;f.to=to;f.color=color;f.start=start;f.started=false;f.c.setAttribute('fill',color);
+  f.i=i;f.tx=f.legs[i][2];f.path=$(pathId);f.len=f.path.getTotalLength();f.from=from;f.to=to;f.color=color;f.start=start;f.started=false;f.c.setAttribute('fill',color);
   if(to)ARRIVE[to]=Math.max(ARRIVE[to]||0,start+LEG_MS);
 }
 function dotR(){const sv=$('fx_f').ownerSVGElement;const sc=(sv.getBoundingClientRect().width||1000)/1000;return Math.min(20,Math.max(3.5,5/sc))} // bù độ co hiện tại của svg
 function fxFrame(now){
   const r=MFX.length?dotR():0;
   for(let i=MFX.length-1;i>=0;i--){const f=MFX[i];const k=(now-f.start)/LEG_MS;f.c.setAttribute('r',r);if(k<0)continue;
-    if(!f.started){f.started=true;if(f.from&&HOLD.has(f.from)&&f.from!==f.to)release(f.from)}
-    if(k>=1){if(f.to)arrive(f.to,f.color);
+    if(!f.started){f.started=true;if(f.from&&HOLD.has(f.from)&&f.from!==f.to)release(f.from);chAct(f.from,'give',f.color,chDir(f.from,f.to),f.tx&&f.tx[0])}
+    if(k>=1){if(f.to){arrive(f.to,f.color);chAct(f.to,'take',f.color,null,f.tx&&f.tx[1])}
       if(f.i+1<f.legs.length){const e=f.path.getPointAtLength(f.len);f.c.setAttribute('cx',e.x);f.c.setAttribute('cy',e.y);f.c.setAttribute('opacity','0');setLeg(f,f.i+1)}
       else{f.c.remove();MFX.splice(i,1)}
       continue}
@@ -752,26 +791,91 @@ function fxFrame(now){
 function legsFor(e,task){
   const own=(task&&task.owner)||e.owner||'',tier=task?(task.tier||''):'',st=e.state||'';
   switch(e.event){
-    case 'assigned':return e.to==='product'?[['p_intent_spec',MC.spec]]:e.to==='engineering'?[['p_gate_exec',MC.code]]:e.to==='insight'?[['p_src1',MC.ins]]:null;
-    case 'started':return e.from==='engineering'&&(e.round||0)>=1?[['p_rework_exec',MC.back]]:null;
-    case 'handoff':return e.from==='product'?[['p_spec_gate',MC.spec]]:e.from==='engineering'?[['p_exec_gate',MC.code]]:e.from==='insight'?[['p_insight_intent',MC.ins]]:null;
-    case 'accepted':if(own==='product')return [['p_gate_kr',MC.spec]];if(own==='insight')return [['p_insight_kr',MC.ins]];
-      if(own==='engineering')return tier==='A'?[['p_gate_rel',MC.code],['p_rel_res',MC.code]]:[['p_gate_capu',MC.code]];return null;
-    case 'rejected':if(st==='spec')return own==='product'?[['p_gate_respec',MC.back]]:own==='engineering'?[['p_gate_respec2',MC.back]]:null;
-      return st==='rework'&&own==='engineering'?[['p_gate_rework',MC.back]]:null;
-    case 'respec':return [['p_respec_spec',MC.spec]];
-    case 'evalplus':return [['p_gate_kr2',MC.ins]];
-    case 'escalated':return e.to==='capu'?[['p_gate_capu',MC.bad]]:null;
-    case 'decided':return st&&st!=='done'?[['p_capu_exec',MC.back]]:null;
+    case 'assigned':return e.to==='product'?[['p_intent_spec',MC.spec,['Giao việc!','Nhận việc!']]]:e.to==='engineering'?[['p_gate_exec',MC.code,['Giao việc!','Nhận việc!']]]:e.to==='insight'?[['p_src1',MC.ins,['','Nhận việc!']]]:null;
+    case 'started':return e.from==='engineering'&&(e.round||0)>=1?[['p_rework_exec',MC.back,['Sửa xong!','Làm lại!']]]:null;
+    case 'handoff':return e.from==='product'?[['p_spec_gate',MC.spec,HAND]]:e.from==='engineering'?[['p_exec_gate',MC.code,HAND]]:e.from==='insight'?[['p_insight_intent',MC.ins,HAND]]:null;
+    case 'accepted':if(own==='product')return [['p_gate_kr',MC.spec,['Qua cổng!','Lưu bất biến!']]];if(own==='insight')return [['p_insight_kr',MC.ins,['Gửi vào bể!','Lưu insight!']]];
+      if(own==='engineering')return tier==='A'?[['p_gate_rel',MC.code,['Qua cổng!','']],['p_rel_res',MC.code,['','Lên sóng!']]]:[['p_gate_capu',MC.code,['Qua cổng!','Diff chờ đọc!']]];return null;
+    case 'rejected':if(st==='spec')return own==='product'?[['p_gate_respec',MC.back,['Trả về!','Sửa spec!']]]:own==='engineering'?[['p_gate_respec2',MC.back,['Trả về!','Sửa spec!']]]:null;
+      return st==='rework'&&own==='engineering'?[['p_gate_rework',MC.back,['Trả về!','Sửa code!']]]:null;
+    case 'respec':return [['p_respec_spec',MC.spec,['Spec đã sửa!','Viết lại!']]];
+    case 'evalplus':return [['p_gate_kr2',MC.ins,['Thêm eval!','Vào bể!']]];
+    case 'escalated':return e.to==='capu'?[['p_gate_capu',MC.bad,['Báo Capu!','Cần quyết!']]]:null;
+    case 'decided':return st&&st!=='done'?[['p_capu_exec',MC.back,['Quyết rồi!','Làm tiếp!']]]:null;
   }
   return null;
 }
-function glyphs(id,x,y,n,lit,kind,inv){
-  const g=$(id);if(!g)return;const max=8,show=Math.min(n,max);let h='';
-  for(let i=0;i<show;i++){const cls='ic '+(kind==='h'?'hum ':'')+(inv?'inv ':'')+(i<lit?'on':'');h+=`<use href="#${kind==='h'?'ic-human':'ic-robot'}" x="${x+i*15}" y="${y}" width="13" height="13" class="${cls}"/>`}
-  if(n>max)h+=`<text class="lbl" x="${x+max*15+2}" y="${y+11}">+${n-max}</text>`;
-  g.innerHTML=h;
+// ---------- Nhân vật trong khối + bong bóng thoại (T-034, spec T-031) ----------
+// 11 nhân vật pixel art (path SVG nội tuyến). Trạng thái suy ra từ khối sáng (busy/ping), dot rời (give), dot chạm (take) và việc escalated (wait).
+const CH_AT={nd_intents:[136,192,'h','scroll'],nd_spec:[318,96,'b','pen'],nd_respec:[318,276,'b','eraser'],gt_spec:[500,152,'b','lens'],nd_exec:[778,96,'b','hat'],nd_rework:[668,276,'b','wrench'],gt_code:[760,302,'b','shield'],nd_capu:[938,192,'h','stamp'],nd_insight:[174,585,'b','chart'],nd_kr:[620,436,'b','books'],nd_prod:[866,586,'b','headset']};
+const CH_ANIM={idle:'blink',work:'work',give:'give',take:'take',wait:'wait'};
+const CH_MS=1200,BUB_MS=2000,WAIT_MS=3000,BUB_CAP=3,CH={},BUB=[],CH_DIR={};let chSeq=0;
+const rc=(...r)=>r.map(([x,y,w,h])=>`M${x} ${y}h${w}v${h}h${-w}z`).join('');
+const pth=(fill,d)=>`<path fill="${fill}" d="${d}"/>`;
+const ROLE={
+  pen:pth('#e0b020',rc([12,-8,3,13]))+pth('#e86a7a',rc([12,-10,3,2]))+pth('#3a3a36',rc([12,5,3,2],[13,7,1,2])),
+  eraser:pth('#e88a9a',rc([11,-2,9,5]))+pth('#6a8ad8',rc([11,1,9,2])),
+  lens:`<path fill="#4a88c4" fill-rule="evenodd" d="${rc([11,-10,10,10],[13,-8,6,6],[20,0,2,2],[22,2,2,2])}"/>`+pth('#bfe0f5',rc([13,-8,6,6])),
+  hat:pth('#f0b800',rc([-7,-18,14,4],[-10,-14,20,2])),
+  wrench:pth('#8d97a5',rc([11,-10,2,4],[14,-10,2,4],[11,-7,5,2],[12,-5,3,12])),
+  shield:pth('#5b6b7d',rc([11,-9,9,4],[11,-5,9,3],[12,-2,7,3],[14,1,3,2]))+pth('#cdd6e0',rc([13,-8,2,4])),
+  chart:pth('#9b7ae0',rc([11,3,3,5],[15,0,3,8],[19,-4,3,12]))+pth('var(--muted)',rc([10,8,13,1])),
+  books:pth('#a05a3c',rc([11,-1,9,3]))+pth('#3c7a5a',rc([12,2,8,3]))+pth('#c9a23c',rc([11,5,9,3])),
+  headset:pth('#d9931f',rc([-12,-11,3,8],[9,-11,3,8],[-12,-3,2,3],[-10,0,5,2])),
+  scroll:pth('#f3e6b8',rc([11,-2,8,11]))+pth('#c9a96a',rc([11,-2,8,2],[11,7,8,2]))+pth('#e8e4d8',rc([20,-9,2,9])),
+  stamp:pth('#8a5a3c',rc([13,-6,4,8],[14,-8,2,2]))+pth('#c24a3a',rc([11,2,10,4]))
+};
+function chArt(kind,role){
+  const bot=kind==='b',hat=role==='hat',ly=hat?-3:0;
+  let s='<g class="mv"><g data-part="body"><path class="f" d="'+(bot?rc([-9,-15,18,14],[-11,-1,22,16]):rc([-7,-15,14,3],[-8,-12,16,11],[-11,-1,22,16]))+'"/>'+(bot?'':pth('#e6b98f',rc([-6,-10,12,8])))+'</g>';
+  s+=ROLE[role];
+  s+=bot?'<g class="eyes"><path data-part="eye" class="p" d="'+rc([-6,-10,4,4])+'"/><path data-part="eye" class="p" d="'+rc([2,-10,4,4])+'"/></g><path class="f" d="'+rc([-1,-17+ly,2,2])+'"/><path data-part="lamp" d="'+rc([-2,-21+ly,4,4])+'"/>'
+    :'<g class="eyes"><path data-part="eye" class="f" d="'+rc([-4,-8,2,3])+'"/><path data-part="eye" class="f" d="'+rc([2,-8,2,3])+'"/></g>'+pth('#d9a21c',rc([-6,-18,12,3],[-6,-21,2,3],[-1,-21,2,3],[4,-21,2,3]))+'<path data-part="lamp" d="'+rc([-2,-24,4,3])+'"/>';
+  s+='<path class="a" d="'+rc([-8,3,16,10])+'"/><path class="p" d="'+rc([-1,7,2,2])+'"/><path class="m" d="'+rc([-11,13,22,2])+'"/>';
+  s+='<g class="hands"><path class="hl" d="'+rc([-13,9,4,4])+'"/><path class="hr" d="'+rc([9,9,4,4])+'"/></g>';
+  s+=pth('#5ab4e6',rc([10,-14,3,2],[9,-12,5,3])).replace('<path','<path data-part="sweat"');
+  s+='<g data-part="paper"><path fill="#fff" stroke="#8a867b" stroke-width="1" d="'+rc([-6,2,12,13])+'"/><path fill="#b9b5a8" d="'+rc([-4,5,8,1],[-4,8,8,1],[-4,11,5,1])+'"/></g>';
+  s+='<g data-part="speed"><path class="sp sd-r" d="'+rc([-34,-6,10,2],[-30,1,14,2],[-34,8,10,2])+'"/><path class="sp sd-l" d="'+rc([24,-6,10,2],[16,1,14,2],[24,8,10,2])+'"/><path class="sp sd-d" d="'+rc([-8,-38,2,10],[0,-44,2,14],[8,-38,2,10])+'"/><path class="sp sd-u" d="'+rc([-8,22,2,10],[0,22,2,14],[8,22,2,10])+'"/></g>';
+  if(!bot)s+='<path data-part="question" fill="#d33" d="'+rc([8,-36,6,2],[12,-34,2,2],[10,-32,4,2],[10,-28,2,2])+'"/>';
+  return s+'</g>';
 }
+(function buildChars(){const L=$('chars');if(!L)return;
+  Object.keys(CH_AT).forEach((id,n)=>{const [x,y,k,role]=CH_AT[id];const g=document.createElementNS(SVGNS,'g');
+    g.setAttribute('class','mch');g.setAttribute('data-block',id);g.setAttribute('data-kind',k==='h'?'human':'bot');g.setAttribute('data-state','idle');g.setAttribute('data-anim',reduceMotion?'none':'blink');
+    g.setAttribute('transform',`translate(${x} ${y})`);g.style.setProperty('--bd',(-(n*0.97%5)).toFixed(2)+'s');g.innerHTML=chArt(k,role);L.appendChild(g);
+    CH[id]={g,x,y,lamp:g.querySelector('[data-part=lamp]'),tr:null,tm:0,seq:0,prev:'idle',st:'idle'}});
+})();
+function chDir(a,b){const c=id=>CH_DIR[id]||(CH_DIR[id]=(()=>{const e=$(id),s=e&&e.querySelector(':scope > rect, :scope > circle');if(!s)return [0,0];const q=s.getBBox();return [q.x+q.width/2,q.y+q.height/2]})());
+  const [ax,ay]=c(a),[bx,by]=c(b),dx=bx-ax,dy=by-ay;return Math.abs(dx)>=Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up')}
+// Ưu tiên: give/take (cái mới hơn thắng) > wait (Capu có việc escalated) > work (khối đang sáng) > idle.
+function chSync(id){const c=CH[id];if(!c)return;const b=$(id);if(!b)return;let st,col=null,dir=null;const tr=c.tr;
+  if(tr){st=tr.st;col=tr.col;dir=tr.dir}
+  else if(id==='nd_capu'&&STATECOL.nd_capu===MC.bad){st='wait';col=MC.bad}
+  else if(b.classList.contains('busy')||b.classList.contains('ping')){st='work';col=b.style.getPropertyValue('--ping')||MC.code}
+  else st='idle';
+  const g=c.g,anim=reduceMotion?'none':CH_ANIM[st];
+  if(c.st!==st||(tr&&c.seq!==tr.seq)){if(!reduceMotion){g.setAttribute('data-anim','none');void g.getBoundingClientRect()}  // chạy lại cử động khi giao/nhận liên tiếp
+    c.st=st;c.seq=tr?tr.seq:0;g.setAttribute('data-state',st)}
+  g.setAttribute('data-anim',anim);if(st==='give')g.setAttribute('data-dir',dir);else g.removeAttribute('data-dir');
+  if(st==='idle'||!col)c.lamp.style.removeProperty('--f');else c.lamp.style.setProperty('--f',col);
+  if(st==='wait'&&c.prev!=='wait')bubble(id,'Chờ quyết…',WAIT_MS);
+  c.prev=st}
+function chAct(id,st,col,dir,text){const c=CH[id];if(!c)return;clearTimeout(c.tm);c.tr={st,col,dir,seq:++chSeq};c.tm=setTimeout(()=>{c.tr=null;chSync(id)},CH_MS);chSync(id);if(text)bubble(id,text,BUB_MS)}
+function bubble(id,text,ms){const L=$('fx_b'),c=CH[id];if(!L||!c)return;
+  const old=BUB.find(q=>q.id===id);if(old)bubDrop(old);while(BUB.length>=BUB_CAP)bubDrop(BUB[0]);
+  const el=document.createElementNS(SVGNS,'g');el.setAttribute('class','bub');el.setAttribute('data-block',id);
+  const mk=(t,a)=>{const e=document.createElementNS(SVGNS,t);for(const k in a)e.setAttribute(k,a[k]);el.appendChild(e);return e};
+  const tail=mk('path',{}),bg=mk('rect',{'data-part':'bubble-bg'}),tx=mk('text',{'data-part':'bubble-text','text-anchor':'middle','dominant-baseline':'central'});tx.textContent=text;L.appendChild(el);
+  const b={id,el,tail,bg,tx};b.tm=setTimeout(()=>bubDrop(b),ms);BUB.push(b);bubLay(b)}
+function bubDrop(b){clearTimeout(b.tm);b.el.remove();const i=BUB.indexOf(b);if(i>=0)BUB.splice(i,1)}
+// cỡ chữ bù độ co của svg: luôn khoảng 12px trên màn hình; hộp bong bóng nằm trọn trong svg
+function bubLay(b){const c=CH[b.id],sv=$('fx_b').ownerSVGElement,sc=(sv.getBoundingClientRect().width||1000)/1000,fs=12/sc,h=fs+9/sc,ts=5/sc;
+  b.tx.setAttribute('font-size',fs);let tw=0;try{tw=b.tx.getComputedTextLength()}catch(e){}if(!tw)tw=b.tx.textContent.length*fs*.56;
+  const w=tw+12/sc,cx=Math.min(1000-w/2-2,Math.max(w/2+2,c.x)),by=Math.max(2,c.y-32-h),tx=Math.min(cx+w/2-ts*2,Math.max(cx-w/2+ts*2,c.x));
+  b.bg.setAttribute('x',cx-w/2);b.bg.setAttribute('y',by);b.bg.setAttribute('width',w);b.bg.setAttribute('height',h);b.bg.setAttribute('rx',2/sc);
+  b.tx.setAttribute('x',cx);b.tx.setAttribute('y',by+h/2);b.tail.setAttribute('d',`M${tx-ts} ${by+h}L${tx+ts} ${by+h}L${tx} ${by+h+ts*1.3}z`)}
+window.addEventListener('resize',()=>BUB.forEach(bubLay));
+Object.keys(CH).forEach(chSync);
 function setNode(id,n,cap){const g=$(id);if(!g)return;const N=g.querySelector('.n'),C=g.querySelector('.cap');if(N)N.textContent=n;if(C&&cap!==undefined)C.textContent=cap}
 function drawModel(x){
   const T=x.tasks,m=(D&&D.model)||{};const hired=new Set(x.roster.filter(r=>r.status==='Hired').map(r=>r.id));
@@ -794,19 +898,13 @@ function drawModel(x){
   const kt=$('krTxt');if(kt)kt.textContent=`${m.invariants_total||0} bất biến · ${m.adversarial_evals||0} eval đối kháng · ${m.regression_evals||0} hồi quy`;
   const kl=document.querySelector('#nd_kr .lbl');if(kl)kl.textContent=m.invariants?`${Object.keys(m.invariants).length} vùng · ${m.specs||0} spec trong bể`:'chưa có dữ liệu bể';
   const ic=$('insCap');if(ic)ic.textContent=`${m.insight_reports||0} báo cáo tuần${m.last_insight?' · '+m.last_insight.slice(0,10):''}`;
-  const w=x.working||new Set();
-  glyphs('g_intents',46,156,1,w.has('capu')?1:0,'h');glyphs('g_spec',208,134,hired.has('product')?1:0,w.has('product')?1:0,'r');
-  glyphs('g_respec',208,314,hired.has('product')?1:0,specRw.length&&w.has('product')?1:0,'r');
-  glyphs('g_gate',492,152,hired.has('spec-critic')?1:0,w.has('spec-critic')?1:0,'r',true);glyphs('g_gate2',752,304,hired.has('adversary')?1:0,w.has('adversary')||w.has('reviewer')?1:0,'r',true);
-  glyphs('g_exec',668,134,Math.max(1,execDoing.length),w.has('engineering')?Math.max(1,execDoing.length):0,'r');glyphs('g_rework',568,314,1,execRw.length&&w.has('engineering')?1:0,'r');
-  glyphs('g_capu',846,156,1,w.has('capu')||w.has('chief-of-staff')?1:0,'h');glyphs('g_insight',48,626,hired.has('insight')?1:0,w.has('insight')?1:0,'r');
   // quy tắc A: khối sáng theo việc trong sổ cái, không cần dot
   const insBusy=T.some(t=>t.owner==='insight'&&(t.state==='doing'||t.state==='rework'));
   STATECOL={nd_intents:specNew.length?MC.spec:null,nd_spec:specDoing.length?MC.spec:null,gt_spec:specGate.length?MC.spec:null,nd_respec:specRw.length?MC.back:null,nd_exec:(execDoing.length||execNew.length)?MC.code:null,nd_rework:execRw.length?MC.back:null,gt_code:codeGate.length?MC.code:null,
     nd_capu:esc.length?MC.bad:(capuRead.length?MC.code:null),nd_insight:insBusy?MC.ins:null,nd_rel:null};
   Object.keys(STATECOL).forEach(applyLit);
   // Insight: báo cáo tuần mới trong dashboard.json → một dot nguồn → Insight → Ý định
-  if(lastReports!==null&&(m.insight_reports||0)>lastReports)emit([['p_src1',MC.ins],['p_insight_intent',MC.ins]]);
+  if(lastReports!==null&&(m.insight_reports||0)>lastReports)emit([['p_src1',MC.ins,['','Có insight!']],['p_insight_intent',MC.ins,['Gửi insight!','Ý định mới!']]]);
   lastReports=m.insight_reports||0;
   const tmap=new Map(T.map(t=>[t.id,t]));
   (x.recent||[]).forEach(r=>{const k=r.key;if(!k||animated.has(k))return;animated.add(k);emit(legsFor(r.e,tmap.get(r.e.task)))});
