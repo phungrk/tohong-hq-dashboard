@@ -724,8 +724,7 @@ function emit(legs){
     return;
   }
   const layer=$('fx_f');if(!layer||layer.childNodes.length>=DOT_CAP||!$(legs[0][0]))return;
-  const sc=(layer.ownerSVGElement.getBoundingClientRect().width||1000)/1000; // bù độ co của svg: đường kính ~10px
-  const c=document.createElementNS(SVGNS,'circle');c.setAttribute('r',Math.min(20,Math.max(3.5,5/sc)));c.setAttribute('fill',legs[0][1]);c.setAttribute('opacity','0');layer.appendChild(c);
+  const c=document.createElementNS(SVGNS,'circle');c.setAttribute('r',dotR());c.setAttribute('fill',legs[0][1]);c.setAttribute('opacity','0');layer.appendChild(c);
   const f={c,legs,i:-1,started:true,start:0,path:null,len:0,from:null,to:null,color:null};
   setLeg(f,0);MFX.push(f);
   if(!fxRaf)fxRaf=requestAnimationFrame(fxFrame);
@@ -737,8 +736,10 @@ function setLeg(f,i){
   f.i=i;f.path=$(pathId);f.len=f.path.getTotalLength();f.from=from;f.to=to;f.color=color;f.start=start;f.started=false;f.c.setAttribute('fill',color);
   if(to)ARRIVE[to]=Math.max(ARRIVE[to]||0,start+LEG_MS);
 }
+function dotR(){const sv=$('fx_f').ownerSVGElement;const sc=(sv.getBoundingClientRect().width||1000)/1000;return Math.min(20,Math.max(3.5,5/sc))} // bù độ co hiện tại của svg
 function fxFrame(now){
-  for(let i=MFX.length-1;i>=0;i--){const f=MFX[i];const k=(now-f.start)/LEG_MS;if(k<0)continue;
+  const r=MFX.length?dotR():0;
+  for(let i=MFX.length-1;i>=0;i--){const f=MFX[i];const k=(now-f.start)/LEG_MS;f.c.setAttribute('r',r);if(k<0)continue;
     if(!f.started){f.started=true;if(f.from&&HOLD.has(f.from)&&f.from!==f.to)release(f.from)}
     if(k>=1){if(f.to)arrive(f.to,f.color);
       if(f.i+1<f.legs.length){const e=f.path.getPointAtLength(f.len);f.c.setAttribute('cx',e.x);f.c.setAttribute('cy',e.y);f.c.setAttribute('opacity','0');setLeg(f,f.i+1)}
