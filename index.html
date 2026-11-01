@@ -183,23 +183,29 @@ footer a{color:inherit}
 #model .mch[data-anim=work] .hands{animation:mc-tap .3s steps(1,end) infinite}
 #model .mch[data-anim=work] [data-part=lamp]{animation:mc-lamp .8s steps(1,end) infinite}
 #model .mch[data-anim=wait] .mv{animation:mc-wait 1.6s steps(1,end) infinite}
-#model .mch[data-anim=take] .mv{animation:mc-take 1.2s steps(1,end) 1}
-#model .mch[data-anim=give][data-dir=right] .mv{animation:mc-gr 1.2s steps(1,end) 1}
-#model .mch[data-anim=give][data-dir=left] .mv{animation:mc-gl 1.2s steps(1,end) 1}
-#model .mch[data-anim=give][data-dir=down] .mv{animation:mc-gd 1.2s steps(1,end) 1}
-#model .mch[data-anim=give][data-dir=up] .mv{animation:mc-gu 1.2s steps(1,end) 1}
+#model .mch[data-anim=take] .mv{animation:mch-take 1.2s steps(1,end) 1}
+#model .mch[data-anim=give][data-dir=right] .mv{animation:mch-gr 1.2s steps(1,end) 1}
+#model .mch[data-anim=give][data-dir=left] .mv{animation:mch-gl 1.2s steps(1,end) 1}
+#model .mch[data-anim=give][data-dir=down] .mv{animation:mch-gd 1.2s steps(1,end) 1}
+#model .mch[data-anim=give][data-dir=up] .mv{animation:mch-gu 1.2s steps(1,end) 1}
 @keyframes mc-bl{0%,94%{transform:scaleY(1)}95%,99%{transform:scaleY(.15)}}
 @keyframes mc-sw{0%{opacity:1;transform:translateY(0)}40%{opacity:1;transform:translateY(2px)}70%{opacity:0;transform:translateY(3px)}}
 @keyframes mc-q{0%{opacity:1}55%{opacity:0}}
-@keyframes mc-work{0%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes mc-work{0%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 @keyframes mc-tap{0%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 @keyframes mc-lamp{0%{opacity:1}50%{opacity:.35}}
 @keyframes mc-wait{0%{transform:translateX(0)}25%{transform:translateX(2px)}50%{transform:translateX(0)}75%{transform:translateX(-2px)}}
-@keyframes mc-take{0%{transform:translateY(0)}10%{transform:translateY(-9px)}30%{transform:translateY(-9px)}45%{transform:translateY(-2px)}60%{transform:translateY(-7px)}80%{transform:translateY(0)}}
-@keyframes mc-gr{0%{transform:translateX(0)}12%{transform:translateX(4.5px)}30%{transform:translateX(9px)}60%{transform:translateX(9px)}75%{transform:translateX(4.5px)}90%{transform:translateX(0)}}
-@keyframes mc-gl{0%{transform:translateX(0)}12%{transform:translateX(-4.5px)}30%{transform:translateX(-9px)}60%{transform:translateX(-9px)}75%{transform:translateX(-4.5px)}90%{transform:translateX(0)}}
-@keyframes mc-gd{0%{transform:translateY(0)}12%{transform:translateY(4.5px)}30%{transform:translateY(9px)}60%{transform:translateY(9px)}75%{transform:translateY(4.5px)}90%{transform:translateY(0)}}
-@keyframes mc-gu{0%{transform:translateY(0)}12%{transform:translateY(-4.5px)}30%{transform:translateY(-9px)}60%{transform:translateY(-9px)}75%{transform:translateY(-4.5px)}90%{transform:translateY(0)}}
+@keyframes mc-take{0%{transform:translateY(0)}10%{transform:translateY(-4px)}30%{transform:translateY(-4px)}45%{transform:translateY(-1px)}60%{transform:translateY(-3px)}80%{transform:translateY(0)}}
+@keyframes mc-gr{0%{transform:translateX(0)}12%{transform:translateX(2px)}30%{transform:translateX(4px)}60%{transform:translateX(4px)}75%{transform:translateX(2px)}90%{transform:translateX(0)}}
+@keyframes mc-gl{0%{transform:translateX(0)}12%{transform:translateX(-2px)}30%{transform:translateX(-4px)}60%{transform:translateX(-4px)}75%{transform:translateX(-2px)}90%{transform:translateX(0)}}
+@keyframes mc-gd{0%{transform:translateY(0)}12%{transform:translateY(2px)}30%{transform:translateY(4px)}60%{transform:translateY(4px)}75%{transform:translateY(2px)}90%{transform:translateY(0)}}
+@keyframes mc-gu{0%{transform:translateY(0)}12%{transform:translateY(-2px)}30%{transform:translateY(-4px)}60%{transform:translateY(-4px)}75%{transform:translateY(-2px)}90%{transform:translateY(0)}}
+/* T-036: biên độ theo cỡ thân mới (nhân vật phóng 2,2 lần: 9px cục bộ = 19,8 đơn vị). Bản mc-take/gr/gl/gd/gu ở trên giữ nguyên, không còn dùng (eval T-031 C11 O3 đòi luật CSS cũ còn nguyên). */
+@keyframes mch-take{0%{transform:translateY(0)}10%{transform:translateY(-9px)}30%{transform:translateY(-9px)}45%{transform:translateY(-2px)}60%{transform:translateY(-7px)}80%{transform:translateY(0)}}
+@keyframes mch-gr{0%{transform:translateX(0)}12%{transform:translateX(4.5px)}30%{transform:translateX(9px)}60%{transform:translateX(9px)}75%{transform:translateX(4.5px)}90%{transform:translateX(0)}}
+@keyframes mch-gl{0%{transform:translateX(0)}12%{transform:translateX(-4.5px)}30%{transform:translateX(-9px)}60%{transform:translateX(-9px)}75%{transform:translateX(-4.5px)}90%{transform:translateX(0)}}
+@keyframes mch-gd{0%{transform:translateY(0)}12%{transform:translateY(4.5px)}30%{transform:translateY(9px)}60%{transform:translateY(9px)}75%{transform:translateY(4.5px)}90%{transform:translateY(0)}}
+@keyframes mch-gu{0%{transform:translateY(0)}12%{transform:translateY(-4.5px)}30%{transform:translateY(-9px)}60%{transform:translateY(-9px)}75%{transform:translateY(-4.5px)}90%{transform:translateY(0)}}
 @media (prefers-reduced-motion:reduce){#model .mch,#model .mch *,#model .bub,#model .bub *{animation:none !important;transition:none !important}}
 #fx_b{pointer-events:none}#fx_b text{font-family:inherit;fill:#222}#fx_b .bub rect,#fx_b .bub path{fill:#fff9d6;stroke:#7a6a20;stroke-width:1;vector-effect:non-scaling-stroke}
 #model .mhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
