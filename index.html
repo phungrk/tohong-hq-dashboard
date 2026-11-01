@@ -159,6 +159,7 @@ footer a{color:inherit}
 #model .res.busy rect,#model .res.ping rect{fill:color-mix(in srgb,var(--ping,var(--accent)) 22%,var(--panel))}
 #model .gate.busy circle{fill:color-mix(in srgb,var(--ping,var(--gc)) 18%,var(--panel))}
 #model .fx circle{stroke:var(--panel);stroke-width:1.2}
+@media (max-width:480px){#model .node .n{font-size:30px}}
 #model .mlegend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px}
 #model .dotleg{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:4px}
 @media (prefers-reduced-motion:no-preference){#model .node rect,#model .res rect,#model .gate circle{transition:stroke .15s,stroke-width .15s,fill .15s}}
@@ -271,7 +272,7 @@ footer a{color:inherit}
       <text class="lbl" x="236" y="548" text-anchor="start">eval hồi quy,</text><text class="lbl" x="236" y="561" text-anchor="start">insight → bể</text>
       <g class="fx" id="fx_f"></g>
     </svg>
-      <div class="mlegend"><span><i class="dotleg" style="background:#14754d"></i>ý định / spec</span><span><i class="dotleg" style="background:#2b7fb8"></i>việc / code</span><span><i class="dotleg" style="background:#d9931f"></i>trả về / rework</span><span><i class="dotleg" style="background:#d33"></i>lỗi / leo thang</span><span><i class="dotleg" style="background:#8a5cf6"></i>eval sinh thêm / insight / đọc bể</span><span id="model-live"></span></div>
+      <div class="mlegend"><span><i class="dotleg" style="background:#14754d"></i>ý định / spec</span><span><i class="dotleg" style="background:#2b7fb8"></i>việc / code</span><span><i class="dotleg" style="background:#d9931f"></i>trả về / rework</span><span><i class="dotleg" style="background:#d33"></i>lỗi / leo thang</span><span><i class="dotleg" style="background:#8a5cf6"></i>eval sinh thêm / insight / đọc bể</span><span>Khối sáng = đang xử lý (có việc ở đó hoặc dot vừa tới)</span><span id="model-live"></span></div>
   </section>
 
   <section class="card" id="canh-bao">
@@ -704,50 +705,65 @@ function drawFeed(x){
 const MC={spec:'#14754d',code:'#2b7fb8',back:'#d9931f',bad:'#d33',ins:'#8a5cf6'};
 const PATH_NODES={p_intent_spec:['nd_intents','nd_spec'],p_kr_spec:['nd_kr','nd_spec'],p_spec_gate:['nd_spec','gt_spec'],p_gate_exec:['gt_spec','nd_exec'],p_gate_respec:['gt_spec','nd_respec'],p_respec_spec:['nd_respec','nd_spec'],p_gate_kr:['gt_spec','nd_kr'],p_exec_gate:['nd_exec','gt_code'],p_gate_rework:['gt_code','nd_rework'],p_rework_exec:['nd_rework','nd_exec'],p_gate_respec2:['gt_code','nd_respec'],p_gate_capu:['gt_code','nd_capu'],p_capu_exec:['nd_capu','nd_exec'],p_gate_kr2:['gt_code','nd_kr'],p_kr_gate:['nd_kr','gt_code'],p_gate_rel:['gt_code','nd_rel'],p_capu_res:['nd_capu','nd_rel'],p_rel_res:['nd_rel','nd_prod'],p_res_insight:['nd_prod','nd_insight'],p_insight_intent:['nd_insight','nd_intents'],p_insight_kr:['nd_insight','nd_kr'],p_src1:['src_data','nd_insight'],p_src2:['src_inc','nd_insight'],p_src3:['src_fb','nd_insight']};
 const HOLD=new Set(['nd_spec','nd_respec','gt_spec','nd_exec','nd_rework','gt_code','nd_capu','nd_rel','nd_insight']);
-const MFX=[],ARRIVE={},BUSY={},animated=new Set();let fxRaf=0,lastReports=null;
+const MFX=[],ARRIVE={},HELD={},animated=new Set();let fxRaf=0,lastReports=null,holdTok=0,STATECOL={};
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-// Khối giữ màu khi còn ít nhất một dot đã chạm mà chưa đi ra; không tự tắt theo thời gian. Sổ cái nói khối trống thì tắt (clearIdle).
-function setBusy(id,color,on){const g=$(id);if(!g)return;BUSY[id]=Math.max(0,(BUSY[id]||0)+(on?1:-1));
-  if(BUSY[id]>0){g.style.setProperty('--ping',color);g.classList.add('busy')}else g.classList.remove('busy')}
-function clearIdle(id,count){if(count>0)return;const g=$(id);if(!g)return;BUSY[id]=0;g.classList.remove('busy')}
-function ping(id,color){const g=$(id);if(!g)return;g.style.setProperty('--ping',color);g.classList.remove('ping');void g.getBoundingClientRect();g.classList.add('ping');clearTimeout(g._pt);g._pt=setTimeout(()=>g.classList.remove('ping'),600)}
-const NOHOLD=new Set(['p_kr_spec','p_src2','p_src3','p_gate_kr','p_gate_kr2','p_insight_kr']); // dot phụ (đọc/ghi bể, nguồn phụ): chỉ nháy, không tính bộ đếm
-const HOLD_MS=1000,HOLD_OF={nd_insight:6000}; // thời gian khối "xử lý" tối thiểu trước khi dot đi ra
-function pulse(pathId,color){
-  if(reduceMotion)return;const path=$(pathId),layer=$('fx_f');if(!path||!layer||MFX.length>60)return;
-  const [from,to]=PATH_NODES[pathId]||[];const now=performance.now();const dur=1400;
-  let start=now+Math.random()*100;{const h=HOLD_OF[from]||HOLD_MS;if(from&&ARRIVE[from]&&ARRIVE[from]+h>start)start=ARRIVE[from]+h;} // khối "xử lý" ít nhất HOLD_MS trước khi dot đi ra
-  const end=start+dur;if(to)ARRIVE[to]=Math.max(ARRIVE[to]||0,end);
-  const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('r','4.5');c.setAttribute('fill',color);c.setAttribute('opacity','0');layer.appendChild(c);
-  MFX.push({c,path,len:path.getTotalLength(),start,dur,from,to,color,started:false,hold:!NOHOLD.has(pathId)});
+const HOLD_MS=1000,CHAIN_MS=1200,HOLD_MAX=10000,PING_MS=600,DOT_CAP=12,LEG_MS=1400,SVGNS='http://www.w3.org/2000/svg';
+// Khối sáng = màu giữ của dot vừa tới (HELD, tối đa 10 giây hoặc tới khi có dot rời) hoặc màu theo sổ cái (STATECOL, quy tắc A).
+function applyLit(id){const g=$(id);if(!g)return;const h=HELD[id];const col=h?h.color:STATECOL[id];
+  if(col){g.style.setProperty('--ping',col);g.classList.add('busy')}else g.classList.remove('busy')}
+function hold(id,color){const tk=++holdTok;HELD[id]={color,tk};applyLit(id);setTimeout(()=>{if(HELD[id]&&HELD[id].tk===tk){delete HELD[id];applyLit(id)}},HOLD_MAX)}
+function release(id){if(HELD[id]){delete HELD[id];applyLit(id)}}
+function ping(id,color){const g=$(id);if(!g)return;g.style.setProperty('--ping',color);g.classList.remove('ping');void g.getBoundingClientRect();g.classList.add('ping');clearTimeout(g._pt);g._pt=setTimeout(()=>{g.classList.remove('ping');applyLit(id)},PING_MS)}
+function arrive(id,color){if(HOLD.has(id))hold(id,color);else ping(id,color)}
+// Một sự kiện = một dot (circle) đi lần lượt qua các chặng; dot đứng yên ở khối giữa 1,2 giây giữa hai chặng.
+function emit(legs){
+  if(!legs||!legs.length)return;
+  if(reduceMotion){
+    const f0=(PATH_NODES[legs[0][0]]||[])[0];if(f0&&HOLD.has(f0))release(f0);
+    legs.forEach(([p,c],i)=>{const to=(PATH_NODES[p]||[])[1];if(!to)return;const last=i===legs.length-1;setTimeout(()=>{if(last)arrive(to,c);else ping(to,c)},i*PING_MS)});
+    return;
+  }
+  const layer=$('fx_f');if(!layer||layer.childNodes.length>=DOT_CAP||!$(legs[0][0]))return;
+  const sc=(layer.ownerSVGElement.getBoundingClientRect().width||1000)/1000; // bù độ co của svg: đường kính ~10px
+  const c=document.createElementNS(SVGNS,'circle');c.setAttribute('r',Math.min(20,Math.max(3.5,5/sc)));c.setAttribute('fill',legs[0][1]);c.setAttribute('opacity','0');layer.appendChild(c);
+  const f={c,legs,i:-1,started:true,start:0,path:null,len:0,from:null,to:null,color:null};
+  setLeg(f,0);MFX.push(f);
   if(!fxRaf)fxRaf=requestAnimationFrame(fxFrame);
 }
+function setLeg(f,i){
+  const [pathId,color]=f.legs[i];const [from,to]=PATH_NODES[pathId]||[];const now=performance.now();
+  let start=i>0?now+CHAIN_MS:now+Math.random()*100;
+  if(i===0&&from&&ARRIVE[from]&&ARRIVE[from]+HOLD_MS>start)start=ARRIVE[from]+HOLD_MS; // không rời khối sớm hơn 1,0 giây sau dot trước
+  f.i=i;f.path=$(pathId);f.len=f.path.getTotalLength();f.from=from;f.to=to;f.color=color;f.start=start;f.started=false;f.c.setAttribute('fill',color);
+  if(to)ARRIVE[to]=Math.max(ARRIVE[to]||0,start+LEG_MS);
+}
 function fxFrame(now){
-  for(let i=MFX.length-1;i>=0;i--){const f=MFX[i];const k=(now-f.start)/f.dur;if(k<0)continue;
-    if(!f.started){f.started=true;if(f.hold&&f.from&&HOLD.has(f.from)&&f.from!==f.to)setBusy(f.from,f.color,false)}
-    if(k>=1){f.c.remove();MFX.splice(i,1);if(f.to){if(f.hold&&HOLD.has(f.to))setBusy(f.to,f.color,true);else ping(f.to,f.color)}continue}
+  for(let i=MFX.length-1;i>=0;i--){const f=MFX[i];const k=(now-f.start)/LEG_MS;if(k<0)continue;
+    if(!f.started){f.started=true;if(f.from&&HOLD.has(f.from)&&f.from!==f.to)release(f.from)}
+    if(k>=1){if(f.to)arrive(f.to,f.color);
+      if(f.i+1<f.legs.length){const e=f.path.getPointAtLength(f.len);f.c.setAttribute('cx',e.x);f.c.setAttribute('cy',e.y);f.c.setAttribute('opacity','0');setLeg(f,f.i+1)}
+      else{f.c.remove();MFX.splice(i,1)}
+      continue}
     const pt=f.path.getPointAtLength(k*f.len);f.c.setAttribute('cx',pt.x);f.c.setAttribute('cy',pt.y);f.c.setAttribute('opacity',k<0.08?k/0.08:1)}
   fxRaf=MFX.length?requestAnimationFrame(fxFrame):0;
 }
-// sự kiện sổ cái → đường nào, màu nào
-function pulsesFor(e,task){
-  const own=task?task.owner:'',tier=task?task.tier:'',st=e.state||'';const out=[];
-  const isSpecGate=e.from==='spec-critic'||(e.from==='reviewer'&&own==='product');
-  if(e.event==='assigned'&&e.to==='product')out.push(['p_intent_spec',MC.spec],['p_kr_spec',MC.ins]);
-  else if(e.event==='assigned'&&e.to==='engineering')out.push(['p_gate_exec',MC.code]);
-  else if(e.event==='handoff'&&e.from==='product')out.push(['p_spec_gate',MC.spec]);
-  else if(e.event==='handoff'&&e.from==='engineering')out.push(['p_exec_gate',MC.code]);
-  else if(e.event==='accepted'&&isSpecGate)out.push(['p_gate_kr',MC.spec],['p_gate_exec',MC.code]);
-  else if(e.event==='accepted'){if(tier==='A'||!tier)out.push(['p_gate_rel',MC.code],['p_rel_res',MC.code]);else out.push(['p_gate_capu',MC.code]);}
-  else if(e.event==='rejected'&&st==='spec')out.push([isSpecGate?'p_gate_respec':'p_gate_respec2',MC.back]);
-  else if(e.event==='rejected'&&st==='rework')out.push(['p_gate_rework',MC.back]);
-  else if(e.event==='rejected'&&st==='done')out.push(['p_gate_rel',MC.code],['p_rel_res',MC.code]);
-  else if(e.event==='started'&&own==='engineering'&&(e.round||0)>0)out.push(['p_rework_exec',MC.back]);
-  else if(e.event==='respec')out.push(['p_respec_spec',MC.spec],['p_spec_gate',MC.spec]);
-  else if(e.event==='evalplus')out.push(['p_gate_kr2',MC.ins],['p_gate_rework',MC.ins]);
-  else if(e.event==='escalated'&&e.to==='capu')out.push(['p_gate_capu',MC.bad]);
-  else if(e.event==='decided')out.push(['p_capu_exec',MC.back]);
-  return out;
+// sự kiện sổ cái → đường nào, màu nào (bảng M1–M18 của spec T-028); không khớp thì bỏ qua
+function legsFor(e,task){
+  const own=(task&&task.owner)||e.owner||'',tier=task?(task.tier||''):'',st=e.state||'';
+  switch(e.event){
+    case 'assigned':return e.to==='product'?[['p_intent_spec',MC.spec]]:e.to==='engineering'?[['p_gate_exec',MC.code]]:e.to==='insight'?[['p_src1',MC.ins]]:null;
+    case 'started':return e.from==='engineering'&&(e.round||0)>=1?[['p_rework_exec',MC.back]]:null;
+    case 'handoff':return e.from==='product'?[['p_spec_gate',MC.spec]]:e.from==='engineering'?[['p_exec_gate',MC.code]]:e.from==='insight'?[['p_insight_intent',MC.ins]]:null;
+    case 'accepted':if(own==='product')return [['p_gate_kr',MC.spec]];if(own==='insight')return [['p_insight_kr',MC.ins]];
+      if(own==='engineering')return tier==='A'?[['p_gate_rel',MC.code],['p_rel_res',MC.code]]:[['p_gate_capu',MC.code]];return null;
+    case 'rejected':if(st==='spec')return own==='product'?[['p_gate_respec',MC.back]]:own==='engineering'?[['p_gate_respec2',MC.back]]:null;
+      return st==='rework'&&own==='engineering'?[['p_gate_rework',MC.back]]:null;
+    case 'respec':return [['p_respec_spec',MC.spec]];
+    case 'evalplus':return [['p_gate_kr2',MC.ins]];
+    case 'escalated':return e.to==='capu'?[['p_gate_capu',MC.bad]]:null;
+    case 'decided':return st&&st!=='done'?[['p_capu_exec',MC.back]]:null;
+  }
+  return null;
 }
 function glyphs(id,x,y,n,lit,kind,inv){
   const g=$(id);if(!g)return;const max=8,show=Math.min(n,max);let h='';
@@ -761,7 +777,7 @@ function drawModel(x){
   const by=(own,...st)=>T.filter(t=>t.owner===own&&st.includes(t.state));
   const specNew=by('product','new'),specDoing=by('product','doing','rework'),specGate=by('product','review'),specRw=T.filter(t=>t.state==='spec');
   const execNew=by('engineering','new'),execDoing=by('engineering','doing'),execRw=by('engineering','rework'),codeGate=by('engineering','review');
-  const esc=T.filter(t=>t.state==='escalated'),capuRead=T.filter(t=>t.state==='done'&&(t.tier==='B'||t.tier==='C')&&t.hours_since_update<48);
+  const esc=T.filter(t=>t.state==='escalated'),capuRead=T.filter(t=>t.owner==='engineering'&&t.state==='done'&&t.tier!=='A'&&(overlay.has(t.id)?0:(t.hours_since_update!==undefined?t.hours_since_update:t.hours))<48);
   const done=T.filter(t=>t.state==='done'),now=Date.now(),wk=done.filter(t=>now-ms(t.updated)<7*864e5).length;
   const inc=x.events.filter(e=>e.event==='rejected'&&e.severity==='minor').length;
   setNode('nd_intents',specNew.length,`việc product chờ viết spec`);
@@ -783,14 +799,16 @@ function drawModel(x){
   glyphs('g_gate',492,152,hired.has('spec-critic')?1:0,w.has('spec-critic')?1:0,'r',true);glyphs('g_gate2',752,304,hired.has('adversary')?1:0,w.has('adversary')||w.has('reviewer')?1:0,'r',true);
   glyphs('g_exec',668,134,Math.max(1,execDoing.length),w.has('engineering')?Math.max(1,execDoing.length):0,'r');glyphs('g_rework',568,314,1,execRw.length&&w.has('engineering')?1:0,'r');
   glyphs('g_capu',846,156,1,w.has('capu')||w.has('chief-of-staff')?1:0,'h');glyphs('g_insight',48,626,hired.has('insight')?1:0,w.has('insight')?1:0,'r');
-  // sổ cái nói khối trống → tắt màu (không chờ dot đi ra)
-  clearIdle('nd_spec',specDoing.length);clearIdle('nd_rel',0);clearIdle('nd_respec',specRw.length);clearIdle('gt_spec',specGate.length);
-  clearIdle('nd_exec',execDoing.length+execNew.length);clearIdle('nd_rework',execRw.length);clearIdle('gt_code',codeGate.length);clearIdle('nd_capu',esc.length+capuRead.length);
-  // Insight: báo cáo tuần mới xuất hiện trong dashboard.json → dot từ nguồn vào Insight, lên bể và lên Ý định
-  if(lastReports!==null&&(m.insight_reports||0)>lastReports){['p_src1','p_src2','p_src3'].forEach(q=>pulse(q,MC.ins));pulse('p_insight_kr',MC.ins);pulse('p_insight_intent',MC.ins)}
+  // quy tắc A: khối sáng theo việc trong sổ cái, không cần dot
+  const insBusy=T.some(t=>t.owner==='insight'&&(t.state==='doing'||t.state==='rework'));
+  STATECOL={nd_spec:specDoing.length?MC.spec:null,gt_spec:specGate.length?MC.spec:null,nd_respec:specRw.length?MC.back:null,nd_exec:execDoing.length?MC.code:null,nd_rework:execRw.length?MC.back:null,gt_code:codeGate.length?MC.code:null,
+    nd_capu:esc.length?MC.bad:(capuRead.length?MC.code:null),nd_insight:insBusy?MC.ins:null,nd_rel:null};
+  Object.keys(STATECOL).forEach(applyLit);
+  // Insight: báo cáo tuần mới trong dashboard.json → một dot nguồn → Insight → Ý định
+  if(lastReports!==null&&(m.insight_reports||0)>lastReports)emit([['p_src1',MC.ins],['p_insight_intent',MC.ins]]);
   lastReports=m.insight_reports||0;
   const tmap=new Map(T.map(t=>[t.id,t]));
-  (x.recent||[]).forEach(r=>{const k=r.key;if(!k||animated.has(k))return;animated.add(k);pulsesFor(r.e,tmap.get(r.e.task)).forEach(([p,c])=>pulse(p,c))});
+  (x.recent||[]).forEach(r=>{const k=r.key;if(!k||animated.has(k))return;animated.add(k);emit(legsFor(r.e,tmap.get(r.e.task)))});
   const ml=$('model-live');if(ml)ml.textContent=liveState==='on'?'dot = sự kiện trực tiếp':'dot = sự kiện mới sau mỗi lần tải';
 }
 
