@@ -975,6 +975,7 @@ setInterval(()=>{if(liveState==='on')render()},15000);
       b.textContent='Phóng to';b.setAttribute('aria-label','Phóng to bảng Mô hình');b.setAttribute('aria-expanded','false');
       window.scrollTo(window.scrollX,y0);b.focus({preventScroll:true});
     }
+    void m.offsetWidth;window.dispatchEvent(new Event('resize')); // hệ số co của svg đổi: bong bóng và mọi thứ tính theo hệ số bố trí lại
   }
   function open(){if(on)return;try{history.pushState({modelZoom:1},'');pushed=true}catch(e){pushed=false}set(true)}
   function close(){if(!on)return;set(false);if(pushed){pushed=false;history.back()}}
