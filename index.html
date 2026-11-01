@@ -190,15 +190,15 @@ footer a{color:inherit}
 @keyframes mc-bl{0%,94%{transform:scaleY(1)}95%,99%{transform:scaleY(.15)}}
 @keyframes mc-sw{0%{opacity:1;transform:translateY(0)}40%{opacity:1;transform:translateY(2px)}70%{opacity:0;transform:translateY(3px)}}
 @keyframes mc-q{0%{opacity:1}55%{opacity:0}}
-@keyframes mc-work{0%{transform:translateY(0)}50%{transform:translateY(-2px)}}
-@keyframes mc-tap{0%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes mc-work{0%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes mc-tap{0%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 @keyframes mc-lamp{0%{opacity:1}50%{opacity:.35}}
 @keyframes mc-wait{0%{transform:translateX(0)}25%{transform:translateX(2px)}50%{transform:translateX(0)}75%{transform:translateX(-2px)}}
-@keyframes mc-take{0%{transform:translateY(0)}10%{transform:translateY(-5px)}30%{transform:translateY(-5px)}45%{transform:translateY(-1px)}60%{transform:translateY(-3px)}80%{transform:translateY(0)}}
-@keyframes mc-gr{0%{transform:translateX(0)}12%{transform:translateX(4px)}30%{transform:translateX(8px)}60%{transform:translateX(8px)}75%{transform:translateX(4px)}90%{transform:translateX(0)}}
-@keyframes mc-gl{0%{transform:translateX(0)}12%{transform:translateX(-4px)}30%{transform:translateX(-8px)}60%{transform:translateX(-8px)}75%{transform:translateX(-4px)}90%{transform:translateX(0)}}
-@keyframes mc-gd{0%{transform:translateY(0)}12%{transform:translateY(4px)}30%{transform:translateY(8px)}60%{transform:translateY(8px)}75%{transform:translateY(4px)}90%{transform:translateY(0)}}
-@keyframes mc-gu{0%{transform:translateY(0)}12%{transform:translateY(-4px)}30%{transform:translateY(-8px)}60%{transform:translateY(-8px)}75%{transform:translateY(-4px)}90%{transform:translateY(0)}}
+@keyframes mc-take{0%{transform:translateY(0)}10%{transform:translateY(-4px)}30%{transform:translateY(-4px)}45%{transform:translateY(-1px)}60%{transform:translateY(-3px)}80%{transform:translateY(0)}}
+@keyframes mc-gr{0%{transform:translateX(0)}12%{transform:translateX(2px)}30%{transform:translateX(4px)}60%{transform:translateX(4px)}75%{transform:translateX(2px)}90%{transform:translateX(0)}}
+@keyframes mc-gl{0%{transform:translateX(0)}12%{transform:translateX(-2px)}30%{transform:translateX(-4px)}60%{transform:translateX(-4px)}75%{transform:translateX(-2px)}90%{transform:translateX(0)}}
+@keyframes mc-gd{0%{transform:translateY(0)}12%{transform:translateY(2px)}30%{transform:translateY(4px)}60%{transform:translateY(4px)}75%{transform:translateY(2px)}90%{transform:translateY(0)}}
+@keyframes mc-gu{0%{transform:translateY(0)}12%{transform:translateY(-2px)}30%{transform:translateY(-4px)}60%{transform:translateY(-4px)}75%{transform:translateY(-2px)}90%{transform:translateY(0)}}
 @media (prefers-reduced-motion:reduce){#model .mch,#model .mch *,#model .bub,#model .bub *{animation:none !important;transition:none !important}}
 #fx_b{pointer-events:none}#fx_b text{font-family:inherit;fill:#222}#fx_b .bub rect,#fx_b .bub path{fill:#fff9d6;stroke:#7a6a20;stroke-width:1;vector-effect:non-scaling-stroke}
 @media (max-width:560px){.hide-n{display:none}#team th,#team td{padding-right:6px}#team th:last-child,#team td:last-child{padding-right:0}}
@@ -807,7 +807,7 @@ function legsFor(e,task){
 }
 // ---------- Nhân vật trong khối + bong bóng thoại (T-034, spec T-031) ----------
 // 11 nhân vật pixel art (path SVG nội tuyến). Trạng thái suy ra từ khối sáng (busy/ping), dot rời (give), dot chạm (take) và việc escalated (wait).
-const CH_AT={nd_intents:[136,192,'h','scroll'],nd_spec:[318,96,'b','pen'],nd_respec:[318,276,'b','eraser'],gt_spec:[500,152,'b','lens'],nd_exec:[778,96,'b','hat'],nd_rework:[668,276,'b','wrench'],gt_code:[760,302,'b','shield'],nd_capu:[938,192,'h','stamp'],nd_insight:[174,585,'b','chart'],nd_kr:[620,436,'b','books'],nd_prod:[866,586,'b','headset']};
+const CH_AT={nd_intents:[136,192,'h','scroll'],nd_spec:[318,96,'b','pen'],nd_respec:[318,276,'b','eraser'],gt_spec:[500,149,'b','lens'],nd_exec:[778,96,'b','hat'],nd_rework:[668,277,'b','wrench'],gt_code:[760,302,'b','shield'],nd_capu:[938,192,'h','stamp'],nd_insight:[174,585,'b','chart'],nd_kr:[620,436,'b','books'],nd_prod:[866,586,'b','headset']};
 const CH_ANIM={idle:'blink',work:'work',give:'give',take:'take',wait:'wait'};
 const CH_MS=1200,BUB_MS=2000,WAIT_MS=3000,BUB_CAP=3,CH={},BUB=[],CH_DIR={};let chSeq=0;
 const rc=(...r)=>r.map(([x,y,w,h])=>`M${x} ${y}h${w}v${h}h${-w}z`).join('');
