@@ -763,7 +763,7 @@ function drawTimeline(x){
     const a=x.alerts.find(r=>r.task!=='—');const latest=x.tasks.slice().sort((p,q)=>p.updated<q.updated?1:-1)[0];
     selected=a?a.task:(latest?latest.id:null);
   }
-  if(!selected){$('tl-title').textContent='Dòng thời gian việc';return emptyRow(tb,5,'Chưa có việc nào.')}
+  if(!selected){$('tl-title').textContent='Dòng thời gian việc';$('tl-sub').textContent='Chọn một việc ở Kanban hoặc Cảnh báo.';return emptyRow(tb,5,'Chưa có việc nào.')}
   const t=x.tasks.find(v=>v.id===selected);
   $('tl-title').textContent='Dòng thời gian · '+selected;
   $('tl-sub').textContent=t?t.title+' · '+nm(t.owner)+' → '+nm(t.reviewer)+(t.deadline?' · hạn '+t.deadline:''):'';
