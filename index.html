@@ -939,7 +939,7 @@ function sumLay(){
   probe.remove();s.shown=lines;
   const w=Math.max(...ws)+2*pad,lh=fs*1.35,h=lines.length*lh+pad,ts=5/sc,id=s.id;
   const rel=q=>[(q.left-sr.left)/sc,(q.top-sr.top)/sc,(q.right-sr.left)/sc,(q.bottom-sr.top)/sc];
-  const c=CH[id],bw=11*CH_S+4,body=[c.x-bw,c.y-18*CH_S-4,c.x+bw,c.y+16*CH_S+4]; // thân bot (tĩnh, nới để không đè cả khi đang cử động)
+  const c=CH[id],mv=9*CH_S+2,bw=11*CH_S+mv,body=[c.x-bw,c.y-18*CH_S-mv,c.x+bw,c.y+16*CH_S+mv]; // vùng thân bot gồm cả biên độ give/take (9 đơn vị cục bộ), để mọi khung hình không đè
   const blk=$(id),shp=blk&&blk.querySelector(':scope > rect, :scope > circle'),sh=shp?rel(shp.getBoundingClientRect()):body;
   const avoid=[body];blk&&blk.querySelectorAll('text').forEach(t=>{if(t.closest('.mch'))return;const q=t.getBoundingClientRect();if(q.width&&t.textContent.trim())avoid.push(rel(q))});
   const e=0.6/sc,fits=(x,y)=>x>=2&&x+w<=998&&y>=2&&y+h<=svH-2&&!avoid.some(r=>Math.min(x+w,r[2])-Math.max(x,r[0])>e&&Math.min(y+h,r[3])-Math.max(y,r[1])>e);
