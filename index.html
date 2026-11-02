@@ -164,7 +164,8 @@ footer a{color:inherit}
 #model .dotleg{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:4px}
 @media (prefers-reduced-motion:no-preference){#model .node rect,#model .res rect,#model .gate circle{transition:stroke .15s,stroke-width .15s,fill .15s}}
 /* Nhân vật trong khối (T-034): chỉ dùng path nên không dính luật rect/circle của khối sáng; chỉ animate transform/opacity */
-#model .mch{shape-rendering:crispEdges;pointer-events:none}
+#model .mch{shape-rendering:crispEdges;cursor:pointer}#model .mch>*{pointer-events:none}#model .mch>.hit{pointer-events:all}
+#model .mch:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #model .mch[data-state=idle]{opacity:.4}
 #model .mch .f{fill:var(--fg)}#model .mch .p{fill:var(--panel)}#model .mch .a{fill:var(--axis)}#model .mch .m{fill:var(--muted)}
 #model .mch .hands path{fill:var(--panel)}#model .mch[data-kind=human] .hands path{fill:#e6b98f}
@@ -202,6 +203,8 @@ footer a{color:inherit}
 @keyframes mch-gd{0%{transform:translateY(0)}12%{transform:translateY(4.5px)}30%{transform:translateY(9px)}60%{transform:translateY(9px)}75%{transform:translateY(4.5px)}90%{transform:translateY(0)}}
 @keyframes mch-gu{0%{transform:translateY(0)}12%{transform:translateY(-4.5px)}30%{transform:translateY(-9px)}60%{transform:translateY(-9px)}75%{transform:translateY(-4.5px)}90%{transform:translateY(0)}}
 @media (prefers-reduced-motion:reduce){#model .mch,#model .mch *,#model .bub,#model .bub *{animation:none !important;transition:none !important}}
+#fx_s .sum{pointer-events:auto}#fx_s text{font-family:inherit;fill:#222}#fx_s .sum rect,#fx_s .sum path{fill:#fff9d6;stroke:#7a6a20;stroke-width:1;vector-effect:non-scaling-stroke}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 #fx_b{pointer-events:none}#fx_b text{font-family:inherit;fill:#222}#fx_b .bub rect,#fx_b .bub path{fill:#fff9d6;stroke:#7a6a20;stroke-width:1;vector-effect:non-scaling-stroke}
 #model .mhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
 #model-zoom{font:inherit;font-size:13px;color:var(--fg);background:var(--panel);border:1px solid var(--axis);border-radius:8px;padding:0 14px;min-width:44px;min-height:44px;cursor:pointer}
@@ -250,7 +253,7 @@ footer a{color:inherit}
   </section>
 
   <section class="card" id="model">
-      <div class="mhead"><h2>Mô hình Eval-Gated 2029</h2><button id="model-zoom" type="button" aria-label="Phóng to bảng Mô hình" aria-expanded="false">Phóng to</button></div>
+      <div class="mhead"><h2>Mô hình Eval-Gated 2029</h2><span id="model-sum-live" class="vh" aria-live="polite" aria-atomic="true"></span><button id="model-zoom" type="button" aria-label="Phóng to bảng Mô hình" aria-expanded="false">Phóng to</button></div>
       <p class="note">Sổ cái đặt lên mô hình vận hành (ADR-010): số trên mỗi khối là việc đang ở đó; dot chạy theo sự kiện thật; khối lên màu từ lúc nhận dot tới lúc dot đi ra. Bể đếm bất biến trong <code>eval/invariants/</code>.</p>
       <svg viewBox="0 0 1000 1100" role="img" aria-labelledby="mdl-title"><title id="mdl-title">Eval-Gated 2029: Spec Writer, Spec Gate (agent critic), agent code, Code Gate (máy ba tầng eval), Capu, Release, Production, Insight và Knowledge Reservoir; chỉ vẽ các đường có luồng</title>
       <defs><symbol id="ic-human" viewBox="0 0 16 16"><circle cx="8" cy="4.5" r="3"/><path d="M1.5 15.5c0-3.8 2.9-6.5 6.5-6.5s6.5 2.7 6.5 6.5z"/></symbol><symbol id="ic-robot" viewBox="0 0 16 16"><rect x="2.5" y="5" width="11" height="8.5" rx="2"/><rect x="5" y="8" width="2.2" height="2.2" rx=".5" fill="var(--panel)"/><rect x="8.8" y="8" width="2.2" height="2.2" rx=".5" fill="var(--panel)"/><rect x="7.3" y="2" width="1.4" height="3"/><circle cx="8" cy="1.6" r="1.3"/><rect x="0.5" y="7.5" width="2" height="3.5" rx=".6"/><rect x="13.5" y="7.5" width="2" height="3.5" rx=".6"/></symbol><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="context-stroke" stroke-width="1.5"/></marker></defs>
@@ -322,7 +325,7 @@ footer a{color:inherit}
       <path id="p_insight_kr" class="arr" d="M 175 802 C 215 792 240 777 252 740" marker-end="url(#ah)"/>
       <text class="lbl" x="186" y="822" text-anchor="start">eval hồi quy,</text>
       <text class="lbl" x="186" y="835" text-anchor="start">insight → bể</text>
-      <g class="fx" id="fx_f"></g><g id="chars"></g><g id="fx_b"></g>
+      <g class="fx" id="fx_f"></g><g id="chars"></g><g id="fx_b"></g><g id="fx_s"></g>
     </svg>
       <div class="mlegend"><span><i class="dotleg" style="background:#14754d"></i>ý định / spec</span><span><i class="dotleg" style="background:#2b7fb8"></i>việc / code</span><span><i class="dotleg" style="background:#d9931f"></i>trả về / rework</span><span><i class="dotleg" style="background:#d33"></i>lỗi / leo thang</span><span><i class="dotleg" style="background:#8a5cf6"></i>eval sinh thêm / insight / đọc bể</span><span>Khối sáng = đang xử lý (có việc ở đó hoặc dot vừa tới)</span><span id="model-live"></span></div>
   </section>
@@ -763,22 +766,22 @@ const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const HOLD_MS=1000,CHAIN_MS=1200,HOLD_MAX=10000,PING_MS=600,DOT_CAP=12,LEG_MS=1400,SVGNS='http://www.w3.org/2000/svg';
 // Khối sáng = màu giữ của dot vừa tới (HELD, tối đa 10 giây hoặc tới khi có dot rời) hoặc màu theo sổ cái (STATECOL, quy tắc A).
 function applyLit(id){const g=$(id);if(!g)return;const h=HELD[id];const col=h?h.color:STATECOL[id];
-  if(col){g.style.setProperty('--ping',col);g.classList.add('busy')}else g.classList.remove('busy');chSync(id)}
+  if(col){g.style.setProperty('--ping',col);g.classList.add('busy')}else g.classList.remove('busy');chSync(id);sumRefresh()}
 function hold(id,color){const tk=++holdTok;HELD[id]={color,tk};applyLit(id);setTimeout(()=>{if(HELD[id]&&HELD[id].tk===tk){delete HELD[id];applyLit(id)}},HOLD_MAX)}
 function release(id){if(HELD[id]){delete HELD[id];applyLit(id)}}
-function ping(id,color){const g=$(id);if(!g)return;g.style.setProperty('--ping',color);g.classList.remove('ping');void g.getBoundingClientRect();g.classList.add('ping');chSync(id);clearTimeout(g._pt);g._pt=setTimeout(()=>{g.classList.remove('ping');applyLit(id)},PING_MS)}
+function ping(id,color){const g=$(id);if(!g)return;g.style.setProperty('--ping',color);g.classList.remove('ping');void g.getBoundingClientRect();g.classList.add('ping');chSync(id);sumRefresh();clearTimeout(g._pt);g._pt=setTimeout(()=>{g.classList.remove('ping');applyLit(id)},PING_MS)}
 function arrive(id,color){if(HOLD.has(id))hold(id,color);else ping(id,color)}
 // Một sự kiện = một dot (circle) đi lần lượt qua các chặng; dot đứng yên ở khối giữa 1,2 giây giữa hai chặng.
-function emit(legs){
+function emit(legs,task){
   if(!legs||!legs.length)return;
   if(reduceMotion){
-    const f0=(PATH_NODES[legs[0][0]]||[])[0];if(f0&&HOLD.has(f0))release(f0);
-    legs.forEach(([p,c,t],i)=>{const [fr,to]=PATH_NODES[p]||[];if(!to)return;const last=i===legs.length-1;setTimeout(()=>{if(last)arrive(to,c);else ping(to,c);chAct(fr,'give',c,chDir(fr,to),t&&t[0]);chAct(to,'take',c,null,t&&t[1])},i*PING_MS)});
+    const f0=(PATH_NODES[legs[0][0]]||[])[0];if(f0){dotNote(f0,'giao',task);if(HOLD.has(f0))release(f0)}
+    legs.forEach(([p,c,t],i)=>{const [fr,to]=PATH_NODES[p]||[];if(!to)return;const last=i===legs.length-1;setTimeout(()=>{dotNote(fr,'giao',task);dotNote(to,'nhận',task);if(last)arrive(to,c);else ping(to,c);chAct(fr,'give',c,chDir(fr,to),t&&t[0]);chAct(to,'take',c,null,t&&t[1])},i*PING_MS)});
     return;
   }
   const layer=$('fx_f');if(!layer||layer.childNodes.length>=DOT_CAP||!$(legs[0][0]))return;
   const c=document.createElementNS(SVGNS,'circle');c.setAttribute('r',dotR());c.setAttribute('fill',legs[0][1]);c.setAttribute('opacity','0');layer.appendChild(c);
-  const f={c,legs,i:-1,started:true,start:0,path:null,len:0,from:null,to:null,color:null};
+  const f={task,c,legs,i:-1,started:true,start:0,path:null,len:0,from:null,to:null,color:null};
   setLeg(f,0);MFX.push(f);
   if(!fxRaf)fxRaf=requestAnimationFrame(fxFrame);
 }
@@ -793,8 +796,8 @@ function dotR(){const sv=$('fx_f').ownerSVGElement;const sc=(sv.getBoundingClien
 function fxFrame(now){
   const r=MFX.length?dotR():0;
   for(let i=MFX.length-1;i>=0;i--){const f=MFX[i];const k=(now-f.start)/LEG_MS;f.c.setAttribute('r',r);if(k<0)continue;
-    if(!f.started){f.started=true;if(f.from&&HOLD.has(f.from)&&f.from!==f.to)release(f.from);chAct(f.from,'give',f.color,chDir(f.from,f.to),f.tx&&f.tx[0])}
-    if(k>=1){if(f.to){arrive(f.to,f.color);chAct(f.to,'take',f.color,null,f.tx&&f.tx[1])}
+    if(!f.started){f.started=true;dotNote(f.from,'giao',f.task);if(f.from&&HOLD.has(f.from)&&f.from!==f.to)release(f.from);chAct(f.from,'give',f.color,chDir(f.from,f.to),f.tx&&f.tx[0])}
+    if(k>=1){if(f.to){dotNote(f.to,'nhận',f.task);arrive(f.to,f.color);chAct(f.to,'take',f.color,null,f.tx&&f.tx[1])}
       if(f.i+1<f.legs.length){const e=f.path.getPointAtLength(f.len);f.c.setAttribute('cx',e.x);f.c.setAttribute('cy',e.y);f.c.setAttribute('opacity','0');setLeg(f,f.i+1)}
       else{f.c.remove();MFX.splice(i,1)}
       continue}
@@ -878,7 +881,7 @@ function chSync(id){const c=CH[id];if(!c)return;const b=$(id);if(!b)return;let s
   if(st==='wait'&&c.prev!=='wait')bubble(id,'Chờ quyết…',WAIT_MS);
   c.prev=st}
 function chAct(id,st,col,dir,text){const c=CH[id];if(!c)return;clearTimeout(c.tm);c.tr={st,col,dir,seq:++chSeq};c.tm=setTimeout(()=>{c.tr=null;chSync(id)},CH_MS);chSync(id);if(text)bubble(id,text,BUB_MS)}
-function bubble(id,text,ms){const L=$('fx_b'),c=CH[id];if(!L||!c)return;
+function bubble(id,text,ms){const L=$('fx_b'),c=CH[id];if(!L||!c||(SUM&&SUM.id===id))return;
   const old=BUB.find(q=>q.id===id);if(old)bubDrop(old);while(BUB.length>=BUB_CAP)bubDrop(BUB[0]);
   const el=document.createElementNS(SVGNS,'g');el.setAttribute('class','bub');el.setAttribute('data-block',id);
   const mk=(t,a)=>{const e=document.createElementNS(SVGNS,t);for(const k in a)e.setAttribute(k,a[k]);el.appendChild(e);return e};
@@ -893,6 +896,114 @@ function bubLay(b){const c=CH[b.id],sv=$('fx_b').ownerSVGElement,sc=(sv.getBound
   b.tx.setAttribute('x',cx);b.tx.setAttribute('y',by+h/2);b.tail.setAttribute('d',`M${tx-ts} ${by+h}L${tx+ts} ${by+h}L${tx} ${by+h+ts*1.3}z`)}
 window.addEventListener('resize',()=>BUB.forEach(bubLay));
 Object.keys(CH).forEach(chSync);
+// ---------- Bấm nhân vật nghe tóm tắt việc (T-037) ----------
+// Tóm tắt = g.sum trong #fx_s (lớp trên cùng, tối đa một cái). Nội dung suy từ cùng danh sách việc làm khối sáng (SUMH) và từ dot gần nhất (DOTB).
+const SUMN={nd_intents:'Ý định',nd_spec:'Spec Writer',nd_respec:'Spec rework',gt_spec:'Spec Gate',nd_exec:'Agent code',nd_rework:'Code rework',gt_code:'Code Gate',nd_capu:'Capu (người)',nd_insight:'Insight',nd_kr:'Knowledge Reservoir',nd_prod:'Production'};
+const SUMW={new:'Mới giao',doing:'Đang làm',review:'Chờ duyệt',rework:'Đang sửa',spec:'Sửa spec',escalated:'Chờ Capu',done:'Chờ đọc diff'};
+const SUM_CPS=40;let SUM=null,SUMH={},SUMT=[];const DOTB={};
+function dotNote(id,role,task){if(id)DOTB[id]={role,task}}
+function sumShort(title){let u=String(title||'').normalize('NFC').replace(/\s+/g,' ').trim();
+  const m=/^[^:]{1,24}:\s+/.exec(u);if(m&&u.length>m[0].length)u=u.slice(m[0].length);
+  const a=Array.from(u);if(!a.length)return '(không tên)';
+  return a.length<=28?u:a.slice(0,27).join('').trimEnd()+'…'}
+function sumNum(id){const m=/\d+/.exec(String(id));return m?parseInt(m[0],10):Infinity}
+function sumLines(id){
+  const held=SUMH[id]||[],bl=$(id);
+  if(!held.length){
+    if(!(bl&&(bl.classList.contains('busy')||bl.classList.contains('ping'))))return ['Đang rảnh'];
+    const d=DOTB[id]||{role:'nhận'},t=d.task&&SUMT.find(q=>q.id===d.task);
+    return [d.task?`Vừa ${d.role} ${d.task} · ${sumShort(t&&t.title)}`:`Vừa ${d.role} insight mới`]}
+  const rank=t=>t.state==='escalated'?0:1;
+  const sorted=held.slice().sort((a,b)=>rank(a)-rank(b)||sumNum(a.id)-sumNum(b.id)||String(a.id).localeCompare(String(b.id)));
+  const out=sorted.slice(0,3).map(t=>`${t.id} · ${sumShort(t.title)} · ${SUMW[t.state]||''}`);
+  if(sorted.length>3)out.push(`+${sorted.length-3} việc nữa`);
+  return out}
+function sumSvgEl(parent,tag,attrs){const e=document.createElementNS(SVGNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);parent.appendChild(e);return e}
+function sumSetLines(s,lines){
+  s.full=lines;s.shown=lines.slice();
+  while(s.els.length>lines.length)s.els.pop().remove();
+  while(s.els.length<lines.length)s.els.push(sumSvgEl(s.g,'text',{'data-part':'sum-line','aria-hidden':'true'}))}
+// Bố cục: hộp trọn trong svg, không đè thân bot, không chạm chữ của chính khối, chữ 9-16px màn hình.
+function sumLay(){
+  const s=SUM;if(!s)return;
+  const sv=$('fx_s').ownerSVGElement,sr=sv.getBoundingClientRect(),sc=(sr.width||1000)/1000,svH=(sr.height||600)/sc;
+  const probe=sumSvgEl(s.g,'text',{visibility:'hidden'});
+  const widths=(lines,fs)=>{probe.setAttribute('font-size',fs);return lines.map(l=>{probe.textContent=l;let w=0;try{w=probe.getComputedTextLength()}catch(e){}return w||l.length*fs*.56})};
+  const pad=6/sc,maxW=1000-4;let fs=12/sc,lines=s.full.slice(),ws=widths(lines,fs);
+  if(Math.max(...ws)+2*pad>maxW){
+    fs=Math.max(9/sc,fs*(maxW-2*pad)/Math.max(...ws));ws=widths(lines,fs);
+    for(let guard=0;Math.max(...ws)+2*pad>maxW&&guard<60;guard++){
+      lines=lines.map((l,i)=>{if(ws[i]+2*pad<=maxW)return l;const m=/^((?:Vừa (?:nhận|giao) )?T-\S+ · )(.*?)( · [^·]+)?$/.exec(l);if(!m)return l;
+        const a=Array.from(m[2].replace(/…$/,''));if(a.length<=1)return l;a.pop();return m[1]+a.join('').trimEnd()+'…'+(m[3]||'')});
+      ws=widths(lines,fs)}}
+  probe.remove();s.shown=lines;
+  const w=Math.max(...ws)+2*pad,lh=fs*1.35,h=lines.length*lh+pad,ts=5/sc,id=s.id;
+  const rel=q=>[(q.left-sr.left)/sc,(q.top-sr.top)/sc,(q.right-sr.left)/sc,(q.bottom-sr.top)/sc];
+  const c=CH[id],mv=9*CH_S+2,bw=11*CH_S+mv,body=[c.x-bw,c.y-18*CH_S-mv,c.x+bw,c.y+16*CH_S+mv]; // vùng thân bot gồm cả biên độ give/take (9 đơn vị cục bộ), để mọi khung hình không đè
+  const blk=$(id),shp=blk&&blk.querySelector(':scope > rect, :scope > circle'),sh=shp?rel(shp.getBoundingClientRect()):body;
+  const avoid=[body];blk&&blk.querySelectorAll('text').forEach(t=>{if(t.closest('.mch'))return;const q=t.getBoundingClientRect();if(q.width&&t.textContent.trim())avoid.push(rel(q))});
+  const e=0.6/sc,fits=(x,y)=>x>=2&&x+w<=998&&y>=2&&y+h<=svH-2&&!avoid.some(r=>Math.min(x+w,r[2])-Math.max(x,r[0])>e&&Math.min(y+h,r[3])-Math.max(y,r[1])>e);
+  const clx=v=>Math.min(998-w,Math.max(2,v)),gap=ts*1.5+2,midY=(sh[1]+sh[3])/2-h/2;
+  const spots=[[clx(c.x-w/2),body[1]-h-gap,'up'],[clx(c.x-w/2),sh[1]-h-gap,'up'],[clx(c.x-w/2),sh[3]+gap,'down'],[sh[2]+gap,midY,'down'],[sh[0]-w-gap,midY,'down'],[clx(c.x-w/2),body[3]+gap,'down']];
+  const pick=spots.find(q=>fits(q[0],q[1]))||spots[0],bx=pick[0],by=Math.max(2,Math.min(svH-h-2,pick[1]));
+  s.bg.setAttribute('x',bx);s.bg.setAttribute('y',by);s.bg.setAttribute('width',w);s.bg.setAttribute('height',h);s.bg.setAttribute('rx',2/sc);
+  s.els.forEach((el,i)=>{el.setAttribute('font-size',fs);el.setAttribute('x',bx+pad);el.setAttribute('y',by+pad/2+lh*(i+.5));el.setAttribute('dominant-baseline','central')});
+  const tx=Math.min(bx+w-ts*2,Math.max(bx+ts*2,c.x));
+  s.tail.setAttribute('d',pick[2]==='up'?`M${tx-ts} ${by+h}L${tx+ts} ${by+h}L${tx} ${by+h+ts*1.3}z`:`M${tx-ts} ${by}L${tx+ts} ${by}L${tx} ${by-ts*1.3}z`);
+  sumReveal()}
+// Đưa hộp vào khung nhìn bằng cuộn tối thiểu (trang ở bản thường, #model khi phóng to).
+function sumReveal(){
+  const r=SUM.bg.getBoundingClientRect(),m=$('model'),zoom=m.getAttribute('data-zoom')==='on';
+  const dy=r.top<0?r.top-8:(r.bottom>innerHeight?r.bottom-innerHeight+8:0),dx=r.left<0?r.left-8:(r.right>innerWidth?r.right-innerWidth+8:0);
+  if(dy){if(zoom)m.scrollTop+=dy;else window.scrollBy(0,dy)}
+  if(dx&&zoom)m.scrollLeft+=dx}
+function sumType(){
+  const s=SUM;if(!s)return;
+  let left=Math.floor((performance.now()-s.t0)*SUM_CPS/1000);
+  s.els.forEach((el,i)=>{const a=Array.from(s.shown[i]||'');el.textContent=a.slice(0,Math.max(0,left)).join('');left-=a.length});
+  if(left>=0)s.g.setAttribute('data-state','done');else s.raf=requestAnimationFrame(sumType)}
+function sumDone(){const s=SUM;if(!s)return;cancelAnimationFrame(s.raf);s.els.forEach((el,i)=>el.textContent=s.shown[i]||'');s.g.setAttribute('data-state','done')}
+function sumAnnounce(){const lv=$('model-sum-live');if(lv)lv.textContent=SUM?`${SUMN[SUM.id]}: ${SUM.full.join('. ')}`:''}
+function sumClose(){
+  const s=SUM;if(!s)return;cancelAnimationFrame(s.raf);s.g.remove();SUM=null;
+  CH[s.id].g.setAttribute('aria-expanded','false');sumAnnounce()}
+function sumOpen(id){
+  sumClose();
+  const g=sumSvgEl($('fx_s'),'g',{class:'sum','data-block':id,'data-state':'typing'});
+  const tail=sumSvgEl(g,'path',{}),bg=sumSvgEl(g,'rect',{'data-part':'sum-bg'});
+  SUM={id,g,tail,bg,els:[],full:[],shown:[],t0:performance.now(),raf:0};
+  sumSetLines(SUM,sumLines(id));CH[id].g.setAttribute('aria-expanded','true');
+  const old=BUB.find(q=>q.id===id);if(old)bubDrop(old);
+  sumAnnounce();sumLay();
+  if(reduceMotion)sumDone();else sumType()}
+function sumToggle(id){
+  if(!SUM||SUM.id!==id)return sumOpen(id);
+  if(SUM.g.getAttribute('data-state')==='typing')sumDone();else sumClose()}
+// Live: tính lại khi sổ cái hoặc đèn đổi; không đổi dòng nào thì để yên (đang gõ thì gõ tiếp).
+function sumRefresh(){
+  const s=SUM;if(!s)return;const lines=sumLines(s.id);
+  if(lines.join('\n')===s.full.join('\n'))return;
+  cancelAnimationFrame(s.raf);sumSetLines(s,lines);sumLay();sumDone();sumAnnounce()}
+(function sumInit(){
+  const sv=$('fx_s').ownerSVGElement;
+  // vùng bấm: thân bot nới 8px mỗi phía, tối thiểu 44x44px màn hình (đơn vị cục bộ của nhân vật = 2,2 u)
+  function fitHits(){const k=CH_S*((sv.getBoundingClientRect().width||1000)/1000);
+    Object.keys(CH).forEach(id=>{const hx=Math.max(11+8/k,22/k),hy=Math.max(15+8/k,22/k),h=CH[id].hit;
+      h.setAttribute('x',-hx);h.setAttribute('y',-hy);h.setAttribute('width',2*hx);h.setAttribute('height',2*hy)})}
+  Object.keys(CH).forEach(id=>{const g=CH[id].g;
+    g.setAttribute('tabindex','0');g.setAttribute('role','button');g.setAttribute('aria-label',SUMN[id]+', xem việc đang giữ');g.setAttribute('aria-expanded','false');
+    const hit=document.createElementNS(SVGNS,'rect');hit.setAttribute('class','hit');hit.setAttribute('fill','transparent');g.insertBefore(hit,g.firstChild);CH[id].hit=hit;
+    g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();sumToggle(id)}})});
+  fitHits();
+  window.addEventListener('resize',()=>{fitHits();sumLay()});
+  window.addEventListener('model-zoomchange',sumClose);
+  document.addEventListener('click',e=>{
+    const t=e.target,ch=t.closest&&t.closest('g.mch'),inSum=t.closest&&t.closest('g.sum');
+    if(ch&&ch.parentNode===$('chars'))return sumToggle(ch.getAttribute('data-block'));
+    if(inSum){if(SUM&&SUM.g.getAttribute('data-state')==='typing')sumDone();return}
+    sumClose()},true);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&SUM){const id=SUM.id;e.preventDefault();e.stopImmediatePropagation();sumClose();CH[id].g.focus()}});
+})();
 function setNode(id,n,cap){const g=$(id);if(!g)return;const N=g.querySelector('.n'),C=g.querySelector('.cap');if(N)N.textContent=n;if(C&&cap!==undefined)C.textContent=cap}
 function drawModel(x){
   const T=x.tasks,m=(D&&D.model)||{};const hired=new Set(x.roster.filter(r=>r.status==='Hired').map(r=>r.id));
@@ -919,12 +1030,13 @@ function drawModel(x){
   const insBusy=T.some(t=>t.owner==='insight'&&(t.state==='doing'||t.state==='rework'));
   STATECOL={nd_intents:specNew.length?MC.spec:null,nd_spec:specDoing.length?MC.spec:null,gt_spec:specGate.length?MC.spec:null,nd_respec:specRw.length?MC.back:null,nd_exec:(execDoing.length||execNew.length)?MC.code:null,nd_rework:execRw.length?MC.back:null,gt_code:codeGate.length?MC.code:null,
     nd_capu:esc.length?MC.bad:(capuRead.length?MC.code:null),nd_insight:insBusy?MC.ins:null,nd_rel:null};
-  Object.keys(STATECOL).forEach(applyLit);
+  SUMT=T;SUMH={nd_intents:specNew,nd_spec:specDoing,gt_spec:specGate,nd_respec:specRw,nd_exec:execDoing.concat(execNew),nd_rework:execRw,gt_code:codeGate,nd_capu:esc.concat(capuRead),nd_insight:T.filter(t=>t.owner==='insight'&&(t.state==='doing'||t.state==='rework'))};
+  Object.keys(STATECOL).forEach(applyLit);sumRefresh();
   // Insight: báo cáo tuần mới trong dashboard.json → một dot nguồn → Insight → Ý định
   if(lastReports!==null&&(m.insight_reports||0)>lastReports)emit([['p_src1',MC.ins,['','Có insight!']],['p_insight_intent',MC.ins,['Gửi insight!','Ý định mới!']]]);
   lastReports=m.insight_reports||0;
   const tmap=new Map(T.map(t=>[t.id,t]));
-  (x.recent||[]).forEach(r=>{const k=r.key;if(!k||animated.has(k))return;animated.add(k);emit(legsFor(r.e,tmap.get(r.e.task)))});
+  (x.recent||[]).forEach(r=>{const k=r.key;if(!k||animated.has(k))return;animated.add(k);emit(legsFor(r.e,tmap.get(r.e.task)),r.e.task)});
   const ml=$('model-live');if(ml)ml.textContent=liveState==='on'?'dot = sự kiện trực tiếp':'dot = sự kiện mới sau mỗi lần tải';
 }
 
@@ -975,6 +1087,7 @@ setInterval(()=>{if(liveState==='on')render()},15000);
       b.textContent='Phóng to';b.setAttribute('aria-label','Phóng to bảng Mô hình');b.setAttribute('aria-expanded','false');
       window.scrollTo(window.scrollX,y0);b.focus({preventScroll:true});
     }
+    window.dispatchEvent(new Event('model-zoomchange')); // tóm tắt nhân vật đóng khi bố cục đổi
     void m.offsetWidth;window.dispatchEvent(new Event('resize')); // hệ số co của svg đổi: bong bóng và mọi thứ tính theo hệ số bố trí lại
   }
   function open(){if(on)return;try{history.pushState({modelZoom:1},'');pushed=true}catch(e){pushed=false}set(true)}
@@ -982,8 +1095,8 @@ setInterval(()=>{if(liveState==='on')render()},15000);
   b.addEventListener('click',()=>on?close():open());
   document.addEventListener('keydown',e=>{
     if(!on)return;
-    if(e.key==='Escape'){e.preventDefault();close()}
-    else if(e.key==='Tab'){e.preventDefault();b.focus()}
+    if(e.key==='Escape'){if(m.querySelector('#fx_s g.sum'))return;e.preventDefault();close()} // còn tóm tắt: để tóm tắt đóng trước (T-037)
+    else if(e.key==='Tab'){e.preventDefault();const ring=[b].concat([...m.querySelectorAll('g.mch')]),i=ring.indexOf(document.activeElement);ring[i<0?0:(i+(e.shiftKey?ring.length-1:1))%ring.length].focus()}
   });
   window.addEventListener('popstate',()=>{if(on){pushed=false;set(false)}});
 })();
