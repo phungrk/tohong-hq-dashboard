@@ -217,6 +217,15 @@ footer a{color:inherit}
 #model[data-zoom=on] #model-zoom{position:fixed;top:8px;right:8px;z-index:60;box-shadow:0 2px 8px rgba(0,0,0,.2)}
 #model[data-zoom=on] .mhead{padding-right:96px}
 @media (max-width:480px){#model[data-zoom=on] svg{width:880px;max-width:none}}
+/* Bộ lọc sản phẩm (T-042) và cây bất biến ở khối bể */
+.khead{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px}
+.pf{display:flex;align-items:center;gap:8px}
+.pf label{font-size:14px;color:var(--muted)}
+#product-filter{font:inherit;font-size:15px;color:var(--fg);background:var(--panel);border:1px solid var(--axis);border-radius:8px;padding:0 10px;min-height:40px;min-width:120px;cursor:pointer}
+#product-filter:hover{border-color:var(--accent)}#product-filter:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#model .kr-row{font-size:11px;font-variant-numeric:tabular-nums;text-anchor:start}
+#model .kr-note{font-size:10px;text-anchor:middle}
+@media (max-width:480px){#model .kr-row{font-size:14px}#model .kr-note{font-size:12px}}
 @media (max-width:560px){.hide-n{display:none}#team th,#team td{padding-right:6px}#team th:last-child,#team td:last-child{padding-right:0}}
 @media (max-width:359px){#team .pill{white-space:normal;border-radius:8px}}
 </style>
@@ -292,7 +301,7 @@ footer a{color:inherit}
       <text class="lbl" x="768" y="396" text-anchor="middle">bậc B, C</text>
       <path id="p_capu_exec" class="arr back" d="M 820 328 C 810 302 800 252 792 227"/>
 
-      <g class="res kr" id="nd_kr"><rect x="205" y="562" width="340" height="176" rx="12"/><text class="t" x="375" y="680" text-anchor="middle" font-size="12">KNOWLEDGE RESERVOIR</text><text id="krTxt" x="375" y="704" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11.5">0 bất biến · 0 eval đối kháng · 0 eval hồi quy</text><text class="lbl" x="375" y="724" text-anchor="middle">spec, eval, bất biến, insight</text></g>
+      <g class="res kr" id="nd_kr"><rect x="205" y="562" width="340" height="176" rx="12"/><text class="t" x="375" y="680" text-anchor="middle" font-size="12">KNOWLEDGE RESERVOIR</text><text id="krTxt" x="375" y="700" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11.5">0 bất biến · 0 eval đối kháng · 0 eval hồi quy</text><text class="lbl" x="375" y="715" text-anchor="middle">spec, eval, bất biến, insight</text><text id="krNote" class="kr-note" x="375" y="729"></text><g id="krTree"><text class="kr-row" data-kr-scope="_shared" x="450" y="590">_shared 0</text><text class="kr-row" data-kr-scope="planner" x="450" y="607">planner 0</text><text class="kr-row" data-kr-scope="hq" x="450" y="624">hq 0</text></g></g>
       <path id="p_gate_kr" class="arr" d="M 453 388 C 430 432 425 492 420 560"/>
       <text class="lbl" x="414" y="540" text-anchor="end">spec đã duyệt</text>
       <text class="lbl" x="414" y="553" text-anchor="end">→ lưu bất biến</text>
@@ -339,7 +348,8 @@ footer a{color:inherit}
   </section>
 
   <section class="card">
-    <h2>Kanban toàn công ty</h2>
+    <div class="khead"><h2 id="kanban-title">Kanban toàn công ty</h2>
+      <div class="pf"><label for="product-filter">Sản phẩm</label><select id="product-filter"><option value="all">Tất cả</option><option value="planner">planner</option><option value="hq">hq</option></select></div></div>
     <p class="note">Mỗi thẻ là một việc: ai đang giữ, đã nằm yên bao lâu. Bấm thẻ để xem lịch sử.</p>
     <div class="board" id="board"></div>
   </section>
@@ -373,6 +383,14 @@ const RUN_STATES=['new','doing','review','rework','spec'];
 const MAX_ANIM=6;
 const STATE_LABEL={new:'Mới',doing:'Đang làm',review:'Chờ cổng',rework:'Code rework',spec:'Spec rework',blocked:'Bị chặn',escalated:'Leo thang',done:'Xong'};
 let D=null,selected=null,names={};
+// ---------- bộ lọc sản phẩm (T-042, spec T-041) ----------
+// Sản phẩm của một việc là trường `product` của dashboard.json (planner | hq | ""), do export_dashboard.py tính bằng task.normalize_area; trang không tự suy từ area.
+const PF_KEY='tohong.productFilter',PRODUCTS=['planner','hq'];
+const prodOf=t=>t&&PRODUCTS.includes(t.product)?t.product:'';
+function readPF(){try{const v=localStorage.getItem(PF_KEY);return PRODUCTS.includes(v)?v:'all'}catch(_){return 'all'}}
+let PF=readPF();
+function taskProd(id){const t=D&&id?D.tasks.find(q=>q.id===id):null;return prodOf(t)}
+const inScope=id=>PF==='all'||(!!id&&taskProd(id)===PF);
 
 // ---------- đường truyền trực tiếp (Cloudflare Worker tohong-live) ----------
 const LIVE_DEFAULT='https://tohong-live.phungnc.workers.dev';
@@ -397,7 +415,7 @@ function emptyRow(tb,n,text){const tr=tb.insertRow();const td=tr.insertCell();td
 const isFresh=k=>{const t=fresh.get(k);return t&&Date.now()-t<4000};
 const nowServer=()=>Date.now()+serverOffset;
 function ago(at){const s=Math.max(0,Math.round((nowServer()-at)/1000));return s<60?s+' giây trước':Math.round(s/60)+' phút trước'}
-function activeAgents(){return [...activity.values()].filter(a=>nowServer()-a.at<ACT_TTL)}
+function activeAgents(){return [...activity.values()].filter(a=>nowServer()-a.at<ACT_TTL&&inScope(a.task))}
 
 function applyLive(e,markFresh){
   const ev={...e,seq:'L-'+String(e.received||Date.now()).padStart(15,'0'),ledger_id:e.id,cost:e.cost||0};
@@ -544,6 +562,9 @@ function drawHeader(x,generated){
 }
 
 function drawTeam(x){
+  const th=document.querySelectorAll('#team thead th');   // bảng người của cả công ty: khi lọc, hai cột số ghi nhãn để không đứng cạnh số đã lọc mà không chú thích
+  if(th[3])th[3].textContent=PF==='all'?'Đang giữ':'Đang giữ (cả công ty)';
+  if(th[4])th[4].textContent=PF==='all'?'Kết quả':'Kết quả (cả công ty)';
   const tb=document.querySelector('#team tbody');tb.innerHTML='';
   names={};x.team.forEach(r=>names[r.id]=r.name);
   x.team.forEach(r=>{
@@ -1025,8 +1046,20 @@ function drawModel(x){
   const gr=$('gateRev');if(gr)gr.textContent=`Spec Gate: ${hired.has('spec-critic')?'spec-critic':'chưa tuyển'} · Code Gate: gate.py + ${hired.has('adversary')?'adversary':'chưa tuyển'}`;
   const rt=$('relTxt');if(rt)rt.textContent=`${wk} release 7 ngày qua · mỗi merge = 1 deploy`;
   const pt=$('resTxt');if(pt)pt.textContent=`${done.length} việc xong · ${inc} có lỗi minor`;
-  const kt=$('krTxt');if(kt)kt.textContent=`${m.invariants_total||0} bất biến · ${m.adversarial_evals||0} eval đối kháng · ${m.regression_evals||0} hồi quy`;
-  const kl=document.querySelector('#nd_kr .lbl');if(kl)kl.textContent=m.invariants?`${Object.keys(m.invariants).length} vùng · ${m.specs||0} spec trong bể`:'chưa có dữ liệu bể';
+  // bể: cây bất biến theo nhánh (luôn cả cây); số ở tiêu đề = _shared + sản phẩm khi lọc (đúng tập chạy khi gate một việc của sản phẩm đó)
+  const inv=m.invariants||{},within=(k,p)=>k===p||k.startsWith(p+'/');
+  const sumK=f=>Object.keys(inv).filter(f).reduce((a,k)=>a+(inv[k]||0),0);
+  const tree={_shared:sumK(k=>k==='_shared'),planner:sumK(k=>within(k,'planner')),hq:sumK(k=>within(k,'hq'))};
+  tree.khac=(m.invariants_total||0)-tree._shared-tree.planner-tree.hq;
+  const scopeN=PF==='all'?(m.invariants_total||0):tree._shared+tree[PF];
+  const kt=$('krTxt');if(kt)kt.textContent=`${scopeN} bất biến · ${m.adversarial_evals||0} eval đối kháng · ${m.regression_evals||0} hồi quy`;
+  const kn=$('krNote');if(kn)kn.textContent=PF==='all'?'':'eval đối kháng, hồi quy: cả công ty';
+  const kl=document.querySelector('#nd_kr .lbl');if(kl)kl.textContent=m.invariants?(PF==='all'?`${Object.keys(inv).length} vùng · ${m.specs||0} spec trong bể`:`${Object.keys(inv).filter(k=>k==='_shared'||within(k,PF)).length} vùng trong bể`):'chưa có dữ liệu bể';
+  const tg=$('krTree');if(tg){
+    let kr=tg.querySelector('[data-kr-scope=khac]');
+    if(tree.khac>0&&!kr){kr=document.createElementNS(SVGNS,'text');kr.setAttribute('class','kr-row');kr.setAttribute('data-kr-scope','khac');kr.setAttribute('x','450');kr.setAttribute('y','641');tg.appendChild(kr)}
+    if(tree.khac<=0&&kr){kr.remove();kr=null}
+    [['_shared','_shared'],['planner','planner'],['hq','hq'],['khac','khác']].forEach(([sc,name])=>{const e=tg.querySelector(`[data-kr-scope=${sc}]`);if(e)e.textContent=`${name} ${Math.max(0,tree[sc])}`})}
   const ic=$('insCap');if(ic)ic.textContent=`${m.insight_reports||0} báo cáo tuần${m.last_insight?' · '+m.last_insight.slice(0,10):''}`;
   // quy tắc A: khối sáng theo việc trong sổ cái, không cần dot
   const insBusy=T.some(t=>t.owner==='insight'&&(t.state==='doing'||t.state==='rework'));
@@ -1035,7 +1068,7 @@ function drawModel(x){
   SUMT=T;SUMH={nd_intents:specNew,nd_spec:specDoing,gt_spec:specGate,nd_respec:specRw,nd_exec:execDoing.concat(execNew),nd_rework:execRw,gt_code:codeGate,nd_capu:esc.concat(capuRead),nd_insight:T.filter(t=>t.owner==='insight'&&(t.state==='doing'||t.state==='rework'))};
   Object.keys(STATECOL).forEach(applyLit);sumRefresh();
   // Insight: báo cáo tuần mới trong dashboard.json → một dot nguồn → Insight → Ý định
-  if(lastReports!==null&&(m.insight_reports||0)>lastReports)emit([['p_src1',MC.ins,['','Có insight!']],['p_insight_intent',MC.ins,['Gửi insight!','Ý định mới!']]]);
+  if(PF==='all'&&lastReports!==null&&(m.insight_reports||0)>lastReports)emit([['p_src1',MC.ins,['','Có insight!']],['p_insight_intent',MC.ins,['Gửi insight!','Ý định mới!']]]);
   lastReports=m.insight_reports||0;
   const tmap=new Map(T.map(t=>[t.id,t]));
   (x.recent||[]).forEach(r=>{const k=r.key;if(!k||animated.has(k))return;animated.add(k);emit(legsFor(r.e,tmap.get(r.e.task)),r.e.task)});
@@ -1046,10 +1079,16 @@ function render(){
   drawActivity();
   if(!D)return;
   for(const [k,t] of fresh)if(Date.now()-t>6000)fresh.delete(k);
-  const x=derive(merged());
+  const mg=merged(),all=derive(mg);
+  let x=all;
+  if(PF!=='all'){   // việc được lọc + sự kiện của chúng; sự kiện không có task chỉ hiện ở Tất cả
+    const pm=new Map(mg.tasks.map(t=>[t.id,prodOf(t)]));
+    x=derive({...mg,tasks:mg.tasks.filter(t=>prodOf(t)===PF),events:mg.events.filter(e=>e.task&&pm.get(e.task)===PF)});
+  }
+  $('kanban-title').textContent=PF==='all'?'Kanban toàn công ty':'Kanban · '+PF;
   x.working=new Set(activeAgents().map(a=>a.agent));
   x.recent=x.events.filter(e=>fresh.has(evKey(e))).map(e=>({event:e.event,from:e.from,to:e.to,owner:(x.tasks.find(t=>t.id===e.task)||{}).owner,at:fresh.get(evKey(e)),key:evKey(e),e}));
-  drawTeam(x);drawHeader(x,D.generated_at);drawAlerts(x);drawTimeline(x);drawBoard(x);drawFlow(x);drawModel(x);drawFeed(x);
+  drawTeam(all);drawHeader(x,D.generated_at);drawAlerts(x);drawTimeline(x);drawBoard(x);drawFlow(x);drawModel(x);drawFeed(x);
 }
 
 async function load(){
@@ -1066,6 +1105,18 @@ async function load(){
   }
 }
 
+// đổi sản phẩm: bỏ dot/đèn giữ/cử động của sản phẩm cũ rồi vẽ lại; Dòng thời gian về việc mặc định của tập mới
+function resetFx(){
+  MFX.length=0;const l=$('fx_f');if(l)l.textContent='';
+  Object.keys(HELD).forEach(k=>delete HELD[k]);
+  document.querySelectorAll('#model .ping').forEach(g=>{clearTimeout(g._pt);g.classList.remove('ping')});
+  Object.keys(CH).forEach(id=>{clearTimeout(CH[id].tm);CH[id].tr=null});
+}
+(function(){const sel=$('product-filter');if(!sel)return;sel.value=PF;
+  sel.addEventListener('change',()=>{const v=sel.value;PF=PRODUCTS.includes(v)?v:'all';
+    try{localStorage.setItem(PF_KEY,PF)}catch(_){}
+    selected=null;resetFx();render();Object.keys(CH).forEach(chSync)});
+})();
 let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(render,150)});
 load();setInterval(load,REFRESH_MS);
 connectLive();
