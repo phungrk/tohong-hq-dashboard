@@ -1246,6 +1246,9 @@ setInterval(()=>{if(liveState==='on')render()},15000);
   }
   let raf=0;
   new ResizeObserver(()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(build)}).observe(svg);
+  const rebuild=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(build)};
+  // font nạp sau lần dựng đầu làm chữ đổi cỡ: dựng lại một lần khi font xong (rAF gộp các lần gọi)
+  if(document.fonts){document.fonts.ready.then(rebuild);document.fonts.addEventListener&&document.fonts.addEventListener('loadingdone',rebuild)}
   build();
 })();
 </script>
