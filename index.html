@@ -1159,7 +1159,7 @@ setInterval(()=>{if(liveState==='on')render()},15000);
 (function(){
   const svg=document.querySelector('#model svg');if(!svg)return;
   const NS='http://www.w3.org/2000/svg';
-  const LEN_PX=5.1,WID_PX=4.2;   // mũi dài/rộng theo px hiển thị (spec 5-7 x 4-7)
+  const LEN_PX=7.65,WID_PX=6.3;   // T-047: mũi 1,5 lần (dài 7,65 x rộng 6,3 px hiển thị), phóng đều
   const LONG=220;                // đường ≥ 220u có thêm mũi giữa
   const GAP=1.2, MAX_EXT=8, MAX_NUDGE=8;
   const TARGET={p_intent_spec:'nd_spec',p_spec_gate:'gt_spec',p_gate_exec:'nd_exec',p_gate_respec:'nd_respec',p_respec_spec:'nd_spec',p_exec_gate:'gt_code',p_gate_rework:'nd_rework',p_rework_exec:'nd_exec',p_gate_respec2:'nd_respec',p_gate_capu:'nd_capu',p_capu_exec:'nd_exec',p_gate_kr:'nd_kr',p_gate_kr2:'nd_kr',p_kr_gate:'gt_code',p_kr_spec:'nd_spec',p_gate_rel:'nd_rel',p_capu_res:'nd_prod',p_rel_res:'nd_prod',p_src1:'nd_insight',p_src2:'nd_insight',p_src3:'nd_insight',p_res_insight:'nd_insight',p_insight_intent:'nd_intents',p_insight_kr:'nd_kr'};
@@ -1228,7 +1228,12 @@ setInterval(()=>{if(liveState==='on')render()},15000);
       }
     }
     // nhãn chỉ nhích (≤ 8u) khi mũi chạm vào nó
-    const touched=t=>{const r=rectU(t);return placed.some(h=>hit(r,bbox(h)))};
+    // chạm = bao lồi của mũi (tam giác) chồng nhãn quá 0,5u theo trục tách (SAT), không phải hộp bao ngang của mũi
+    const pen=(h,r)=>{const R=[[r.l,r.t],[r.r,r.t],[r.r,r.b],[r.l,r.b]],ax=[[1,0],[0,1]];
+      h.forEach((v,i)=>{const w=h[(i+1)%h.length],n=Math.hypot(w[0]-v[0],w[1]-v[1])||1;ax.push([-(w[1]-v[1])/n,(w[0]-v[0])/n])});
+      let m=Infinity;for(const[x,y]of ax){const a=h.map(q=>q[0]*x+q[1]*y),b=R.map(q=>q[0]*x+q[1]*y);
+        m=Math.min(m,Math.min(Math.max(...a),Math.max(...b))-Math.max(Math.min(...a),Math.min(...b)))}return m};
+    const touched=t=>{const r=rectU(t);return placed.some(h=>pen(h,r)>.5)};
     for(const t of labels){
       if(!touched(t))continue;
       const x0=+t.getAttribute('data-x0'),y0=+t.getAttribute('data-y0');let ok=false;
@@ -1241,6 +1246,9 @@ setInterval(()=>{if(liveState==='on')render()},15000);
   }
   let raf=0;
   new ResizeObserver(()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(build)}).observe(svg);
+  const rebuild=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(build)};
+  // font nạp sau lần dựng đầu làm chữ đổi cỡ: dựng lại một lần khi font xong (rAF gộp các lần gọi)
+  if(document.fonts){document.fonts.ready.then(rebuild);document.fonts.addEventListener&&document.fonts.addEventListener('loadingdone',rebuild)}
   build();
 })();
 </script>
