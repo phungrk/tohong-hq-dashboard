@@ -244,6 +244,7 @@ footer a{color:inherit}
 #capu-modal .cr-l{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:2px}
 #capu-modal a[data-capu-link]{display:inline-flex;align-items:center;min-height:32px;color:var(--accent);max-width:100%;overflow-wrap:anywhere}
 #capu-modal .cr-none{color:var(--muted);display:inline-block;min-height:32px;line-height:32px}
+#capu-modal .cr-ok{margin:4px 0 0;font-size:12px;color:var(--muted);overflow-wrap:anywhere}
 #capu-modal [data-capu-empty]{margin:8px 0;color:var(--muted);font-size:14px}
 </style>
 </head>
@@ -1093,7 +1094,9 @@ function capuDraw(){
     const l=document.createElement('div');l.className='cr-l';
     if(!r.links.length){const s2=document.createElement('span');s2.className='cr-none';s2.textContent='chưa có link';l.appendChild(s2)}
     r.links.forEach(x=>{const a=document.createElement('a');a.setAttribute('data-capu-link','');a.href=x.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=x.label;if(x.pr_state)a.setAttribute('data-pr-state',x.pr_state);l.appendChild(a)});
-    d.appendChild(l);box.appendChild(d)});
+    d.appendChild(l);
+    if(r.kind==='escalated'&&r.links.some(x=>/^https:\/\/github\.com\/phungrk\/tohong-hq\/issues\/[1-9][0-9]*$/.test(x.url||''))){const oh=document.createElement('p');oh.className='cr-ok';oh.setAttribute('data-capu-ok-hint','');oh.textContent='Quyết bằng cách bình luận "/ok <nội dung>" dưới issue';d.appendChild(oh)}
+    box.appendChild(d)});
   if(keep){const a=[...box.querySelectorAll('a')].find(x=>x.getAttribute('href')===keep);if(a)a.focus()}}
 function capuFocusables(){return [...$('capu-modal').querySelectorAll('button,a[href]')]}
 function capuOpen(){
