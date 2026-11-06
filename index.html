@@ -963,7 +963,7 @@ function sumLines(id){
     return [d.task?`Vừa ${d.role} ${d.task} · ${sumShort(t&&t.title)}`:`Vừa ${d.role} insight mới`]}
   const rank=t=>t.state==='escalated'?0:1;
   const sorted=held.slice().sort((a,b)=>rank(a)-rank(b)||sumNum(a.id)-sumNum(b.id)||String(a.id).localeCompare(String(b.id)));
-  const out=sorted.slice(0,3).map(t=>`${t.id} · ${sumShort(t.title)} · ${SUMW[t.state]||''}`);
+  const out=sorted.slice(0,3).map(t=>`${t.id} · ${sumShort(t.title)} · ${t._l||SUMW[t.state]||''}`);
   if(sorted.length>3)out.push(`+${sorted.length-3} việc nữa`);
   return out}
 function sumSvgEl(parent,tag,attrs){const e=document.createElementNS(SVGNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);parent.appendChild(e);return e}
@@ -1069,13 +1069,14 @@ function capuRows(){
     if(t.owner==='engineering'&&t.state==='done'&&t.tier!=='A'&&(overlay.has(t.id)?0:(t.hours_since_update!==undefined?t.hours_since_update:t.hours))<48)
       rows.set(t.id,{task:t.id,kind:t.tier==='C'?'merge-c':'diff-b',decide_by:'',links:[],t})});
   const num=id=>{const m=/\d+/.exec(id);return m?parseInt(m[0],10):Infinity};
-  return [...rows.values()].sort((a,b)=>CAPU_KINDS.indexOf(a.kind)-CAPU_KINDS.indexOf(b.kind)||(a.decide_by?0:1)-(b.decide_by?0:1)||String(a.decide_by).localeCompare(String(b.decide_by))||num(a.task)-num(b.task)||a.task.localeCompare(b.task))}
+  return [...rows.values()].sort((a,b)=>CAPU_KINDS.indexOf(a.kind)-CAPU_KINDS.indexOf(b.kind)||(a.decide_by?0:1)-(b.decide_by?0:1)||String(a.decide_by).localeCompare(String(b.decide_by))||num(a.task)-num(b.task)||a.task.localeCompare(b.task)).filter(r=>PF==='all'||prodOf(r.t)===PF)}
 function capuSync(rows){
   CAPU_ROWS=rows;const n=rows.length,g=$('nd_capu');
   if(g)g.setAttribute('aria-label',`Capu, có ${n} việc chờ anh duyệt, bấm để xem danh sách`);
   if(CAPU_OPEN)capuDraw()}
 function capuDraw(){
-  const rows=CAPU_ROWS,key=JSON.stringify(rows.map(r=>[r.task,r.kind,r.decide_by,r.links,r.t&&r.t.title]));
+  let fn=document.querySelector('#capu-modal [data-capu-filter]');if(PF==='all'){if(fn)fn.remove()}else{if(!fn){fn=document.createElement('p');fn.setAttribute('data-capu-filter','');$('capu-list').before(fn)}fn.textContent=`Đang lọc theo sản phẩm: ${PF}. Chọn "Tất cả" ở bộ chọn Sản phẩm để xem mọi việc chờ anh.`}
+  const rows=CAPU_ROWS,key=PF+JSON.stringify(rows.map(r=>[r.task,r.kind,r.decide_by,r.links,r.t&&r.t.title]));
   $('capu-title').textContent=`Việc chờ anh duyệt (${rows.length})`;
   if(key===CAPU_KEY)return;CAPU_KEY=key;
   const box=$('capu-list'),act=document.activeElement,keep=act&&box.contains(act)&&act.getAttribute('href');
@@ -1154,7 +1155,7 @@ function drawModel(x){
   const insBusy=T.some(t=>t.owner==='insight'&&(t.state==='doing'||t.state==='rework'));
   STATECOL={nd_intents:specNew.length?MC.spec:null,nd_spec:specDoing.length?MC.spec:null,gt_spec:specGate.length?MC.spec:null,nd_respec:specRw.length?MC.back:null,nd_exec:(execDoing.length||execNew.length)?MC.code:null,nd_rework:execRw.length?MC.back:null,gt_code:codeGate.length?MC.code:null,
     nd_capu:(ca+cd)?MC.bad:(cb?MC.code:null),nd_insight:insBusy?MC.ins:null,nd_rel:null};
-  SUMT=T;SUMH={nd_intents:specNew,nd_spec:specDoing,gt_spec:specGate,nd_respec:specRw,nd_exec:execDoing.concat(execNew),nd_rework:execRw,gt_code:codeGate,nd_capu:esc.concat(capuRead),nd_insight:T.filter(t=>t.owner==='insight'&&(t.state==='doing'||t.state==='rework'))};
+  SUMT=T;SUMH={nd_intents:specNew,nd_spec:specDoing,gt_spec:specGate,nd_respec:specRw,nd_exec:execDoing.concat(execNew),nd_rework:execRw,gt_code:codeGate,nd_capu:cq.map(r=>({id:r.task,title:r.t&&r.t.title,state:r.kind==='escalated'?'escalated':'_',_l:{escalated:'Chờ Capu',decision:'Chờ quyết',blocked:'Chờ Capu làm','diff-b':'Chờ đọc diff','merge-c':'Chờ đọc diff'}[r.kind]})),nd_insight:T.filter(t=>t.owner==='insight'&&(t.state==='doing'||t.state==='rework'))};
   Object.keys(STATECOL).forEach(applyLit);sumRefresh();
   // Insight: báo cáo tuần mới trong dashboard.json → một dot nguồn → Insight → Ý định
   if(PF==='all'&&lastReports!==null&&(m.insight_reports||0)>lastReports)emit([['p_src1',MC.ins,['','Có insight!']],['p_insight_intent',MC.ins,['Gửi insight!','Ý định mới!']]]);
