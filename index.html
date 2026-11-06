@@ -1095,7 +1095,7 @@ function capuDraw(){
     if(!r.links.length){const s2=document.createElement('span');s2.className='cr-none';s2.textContent='chưa có link';l.appendChild(s2)}
     r.links.forEach(x=>{const a=document.createElement('a');a.setAttribute('data-capu-link','');a.href=x.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=x.label;if(x.pr_state)a.setAttribute('data-pr-state',x.pr_state);l.appendChild(a)});
     d.appendChild(l);
-    if(r.kind==='escalated'&&r.links.some(x=>/\/issues\/[1-9][0-9]*$/.test(x.url||''))){const oh=document.createElement('p');oh.className='cr-ok';oh.setAttribute('data-capu-ok-hint','');oh.textContent='Quyết bằng cách bình luận "/ok <nội dung>" dưới issue';d.appendChild(oh)}
+    if(r.kind==='escalated'&&r.links.some(x=>/^https:\/\/github\.com\/phungrk\/tohong-hq\/issues\/[1-9][0-9]*$/.test(x.url||''))){const oh=document.createElement('p');oh.className='cr-ok';oh.setAttribute('data-capu-ok-hint','');oh.textContent='Quyết bằng cách bình luận "/ok <nội dung>" dưới issue';d.appendChild(oh)}
     box.appendChild(d)});
   if(keep){const a=[...box.querySelectorAll('a')].find(x=>x.getAttribute('href')===keep);if(a)a.focus()}}
 function capuFocusables(){return [...$('capu-modal').querySelectorAll('button,a[href]')]}
