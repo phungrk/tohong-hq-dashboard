@@ -228,6 +228,23 @@ footer a{color:inherit}
 @media (max-width:480px){#model .kr-row{font-size:14px}#model .kr-note{font-size:12px}}
 @media (max-width:560px){.hide-n{display:none}#team th,#team td{padding-right:6px}#team th:last-child,#team td:last-child{padding-right:0}}
 @media (max-width:359px){#team .pill{white-space:normal;border-radius:8px}}
+/* T-078: modal việc chờ Capu */
+#nd_capu{cursor:pointer}#nd_capu:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+#capu-modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box}
+#capu-modal[hidden]{display:none}
+#capu-modal [data-capu-panel]{position:relative;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.3);width:min(560px,100%);max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;padding:16px 14px 14px}
+#capu-modal h2{margin:0 52px 10px 0;font-size:16px;overflow-wrap:anywhere}
+#capu-modal-close{position:absolute;top:6px;right:6px;width:44px;height:44px;font:inherit;font-size:22px;line-height:1;color:var(--fg);background:var(--panel);border:1px solid var(--axis);border-radius:8px;cursor:pointer}
+#capu-modal-close:focus-visible,#capu-modal a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#capu-modal [data-capu-row]{border-top:1px solid var(--line);padding:10px 0;font-size:13px;overflow-wrap:anywhere;word-break:break-word}
+#capu-modal .cr-h{display:flex;gap:6px;flex-wrap:wrap;align-items:baseline}
+#capu-modal .cr-id{font-weight:600;font-variant-numeric:tabular-nums}
+#capu-modal .cr-k{color:var(--muted);margin:2px 0}#capu-modal [data-kind=escalated] .cr-k{color:var(--bad)}
+#capu-modal .cr-by{color:var(--warn)}
+#capu-modal .cr-l{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:2px}
+#capu-modal a[data-capu-link]{display:inline-flex;align-items:center;min-height:32px;color:var(--accent);max-width:100%;overflow-wrap:anywhere}
+#capu-modal .cr-none{color:var(--muted);display:inline-block;min-height:32px;line-height:32px}
+#capu-modal [data-capu-empty]{margin:8px 0;color:var(--muted);font-size:14px}
 </style>
 </head>
 <body>
@@ -239,6 +256,13 @@ footer a{color:inherit}
     <div class="activity" id="activity" aria-live="polite"></div>
   </header>
   <div class="banner" id="banner"></div>
+<div id="capu-modal" role="dialog" aria-modal="true" aria-labelledby="capu-title" hidden>
+  <div data-capu-panel>
+    <button id="capu-modal-close" type="button" aria-label="Đóng">&times;</button>
+    <h2 id="capu-title">Việc chờ anh duyệt (0)</h2>
+    <div id="capu-list"></div>
+  </div>
+</div>
 
   <section class="kpis">
     <div class="card kpi"><div class="lbl">Đang chạy</div><div class="val" id="k-wip">—</div><div class="sub">Mới, đang làm, chờ review, rework</div></div>
@@ -418,6 +442,7 @@ function ago(at){const s=Math.max(0,Math.round((nowServer()-at)/1000));return s<
 function activeAgents(){return [...activity.values()].filter(a=>nowServer()-a.at<ACT_TTL&&inScope(a.task))}
 
 function applyLive(e,markFresh){
+  if(e&&e.event==='merged')return; // T-078: PR đã xử lý chỉ là dữ liệu cho capu_queue, không phải luồng việc
   const ev={...e,seq:'L-'+String(e.received||Date.now()).padStart(15,'0'),ledger_id:e.id,cost:e.cost||0};
   const k=evKey(ev);
   if(D&&D.events.some(x=>evKey(x)===k))return;
@@ -1027,6 +1052,69 @@ function sumRefresh(){
     sumClose()},true);
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&SUM){const id=SUM.id;e.preventDefault();e.stopImmediatePropagation();sumClose();CH[id].g.focus()}});
 })();
+// ---------- T-078: modal việc chờ Capu ----------
+let CAPU_T=[],CAPU_ROWS=[],CAPU_KEY='',CAPU_OPEN=false;
+const CAPU_DIR='https://github.com/phungrk/tohong-hq/tree/main/inbox/capu';
+const CAPU_KINDS=['escalated','decision','blocked','merge-c','diff-b'];
+const CAPU_LBL={escalated:'Leo thang - cần anh quyết',decision:'Quyết định chờ anh',blocked:'Bị chặn - chờ anh làm','diff-b':'Đọc diff hành vi - bậc B','merge-c':'Duyệt và tự merge - bậc C'};
+function capuRows(){
+  const T=CAPU_T,byId=new Map(T.map(t=>[t.id,t])),rows=new Map(),q=D&&Array.isArray(D.capu_queue)?D.capu_queue:null;
+  const qm=new Map((q||[]).map(e=>[e.task,e]));
+  T.forEach(t=>{if(t.state==='escalated'){const e=qm.get(t.id);
+    rows.set(t.id,{task:t.id,kind:'escalated',decide_by:e?e.decide_by||'':'',links:e?e.links||[]:[{label:'Decision Request',url:CAPU_DIR,pr_state:''}],t})}});
+  if(q){q.forEach(e=>{const t=byId.get(e.task);if(!t||rows.has(e.task))return;
+    const ok=e.kind==='decision'?true:e.kind==='blocked'?t.state==='blocked':(e.kind==='diff-b'||e.kind==='merge-c')?t.state==='done':false;
+    if(ok)rows.set(e.task,{task:e.task,kind:e.kind,decide_by:e.decide_by||'',links:e.links||[],t})})}
+  else T.forEach(t=>{if(rows.has(t.id))return;
+    if(t.owner==='engineering'&&t.state==='done'&&t.tier!=='A'&&(overlay.has(t.id)?0:(t.hours_since_update!==undefined?t.hours_since_update:t.hours))<48)
+      rows.set(t.id,{task:t.id,kind:t.tier==='C'?'merge-c':'diff-b',decide_by:'',links:[],t})});
+  const num=id=>{const m=/\d+/.exec(id);return m?parseInt(m[0],10):Infinity};
+  return [...rows.values()].sort((a,b)=>CAPU_KINDS.indexOf(a.kind)-CAPU_KINDS.indexOf(b.kind)||(a.decide_by?0:1)-(b.decide_by?0:1)||String(a.decide_by).localeCompare(String(b.decide_by))||num(a.task)-num(b.task)||a.task.localeCompare(b.task))}
+function capuSync(rows){
+  CAPU_ROWS=rows;const n=rows.length,g=$('nd_capu');
+  if(g)g.setAttribute('aria-label',`Capu, có ${n} việc chờ anh duyệt, bấm để xem danh sách`);
+  if(CAPU_OPEN)capuDraw()}
+function capuDraw(){
+  const rows=CAPU_ROWS,key=JSON.stringify(rows.map(r=>[r.task,r.kind,r.decide_by,r.links,r.t&&r.t.title]));
+  $('capu-title').textContent=`Việc chờ anh duyệt (${rows.length})`;
+  if(key===CAPU_KEY)return;CAPU_KEY=key;
+  const box=$('capu-list'),act=document.activeElement,keep=act&&box.contains(act)&&act.getAttribute('href');
+  box.textContent='';
+  if(!rows.length){const p=document.createElement('p');p.setAttribute('data-capu-empty','');p.textContent='Không có việc nào chờ anh';box.appendChild(p);return}
+  rows.forEach(r=>{
+    const d=document.createElement('div');d.setAttribute('data-capu-row','');d.setAttribute('data-task',r.task);d.setAttribute('data-kind',r.kind);if(r.decide_by)d.setAttribute('data-decide-by',r.decide_by);
+    const h=document.createElement('div');h.className='cr-h';
+    const id=document.createElement('span');id.className='cr-id';id.textContent=r.task;
+    const ti=document.createElement('span');ti.className='cr-t';ti.textContent=(r.t&&r.t.title)||'';h.append(id,ti);d.appendChild(h);
+    const k=document.createElement('div');k.className='cr-k';k.textContent=CAPU_LBL[r.kind]||r.kind;
+    if(r.decide_by){const by=document.createElement('span');by.className='cr-by';by.textContent=` · hạn ${r.decide_by}`;k.appendChild(by)}
+    d.appendChild(k);
+    const l=document.createElement('div');l.className='cr-l';
+    if(!r.links.length){const s2=document.createElement('span');s2.className='cr-none';s2.textContent='chưa có link';l.appendChild(s2)}
+    r.links.forEach(x=>{const a=document.createElement('a');a.setAttribute('data-capu-link','');a.href=x.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=x.label;if(x.pr_state)a.setAttribute('data-pr-state',x.pr_state);l.appendChild(a)});
+    d.appendChild(l);box.appendChild(d)});
+  if(keep){const a=[...box.querySelectorAll('a')].find(x=>x.getAttribute('href')===keep);if(a)a.focus()}}
+function capuFocusables(){return [...$('capu-modal').querySelectorAll('button,a[href]')]}
+function capuOpen(){
+  if(CAPU_OPEN)return;CAPU_OPEN=true;CAPU_KEY='';capuDraw();$('capu-modal').hidden=false;$('capu-modal-close').focus()}
+function capuClose(){
+  if(!CAPU_OPEN)return;CAPU_OPEN=false;$('capu-modal').hidden=true;const g=$('nd_capu');if(g)g.focus({preventScroll:true})}
+(function capuInit(){
+  const g=$('nd_capu'),m=$('capu-modal');if(!g||!m)return;
+  g.setAttribute('tabindex','0');g.setAttribute('role','button');g.setAttribute('aria-label','Capu, có 0 việc chờ anh duyệt, bấm để xem danh sách');
+  g.addEventListener('click',capuOpen);
+  g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();capuOpen()}});
+  $('capu-modal-close').addEventListener('click',capuClose);
+  m.addEventListener('click',e=>{if(e.target===m)capuClose()});
+  // bắt ở window (giai đoạn bắt) để Esc/Tab của modal đi trước tóm tắt nhân vật (T-037) và chế độ phóng to (T-036)
+  window.addEventListener('keydown',e=>{
+    if(!CAPU_OPEN)return;
+    if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();capuClose()}
+    else if(e.key==='Tab'){e.preventDefault();e.stopImmediatePropagation();
+      const f=capuFocusables(),i=f.indexOf(document.activeElement);
+      f[(i<0?0:(i+(e.shiftKey?f.length-1:1))%f.length)].focus()}
+  },true);
+})();
 function setNode(id,n,cap){const g=$(id);if(!g)return;const N=g.querySelector('.n'),C=g.querySelector('.cap');if(N)N.textContent=n;if(C&&cap!==undefined)C.textContent=cap}
 function drawModel(x){
   const T=x.tasks,m=(D&&D.model)||{};const hired=new Set(x.roster.filter(r=>r.status==='Hired').map(r=>r.id));
@@ -1041,7 +1129,8 @@ function drawModel(x){
   setNode('nd_respec',specRw.length,`đang sửa spec · ${T.reduce((a,t)=>a+(t.spec_returns||0),0)} lần tổng`);
   setNode('nd_exec',execDoing.length,`${execDoing.length} đang code · ${execNew.length} chờ`);
   setNode('nd_rework',execRw.length,`đang sửa · ${T.reduce((a,t)=>a+(t.evals_added||0),0)} lần thêm eval`);
-  setNode('nd_capu',esc.length+capuRead.length,`${esc.length} leo thang · ${capuRead.length} diff hành vi chờ đọc`);
+  const cq=capuRows(),ca=cq.filter(r=>r.kind==='escalated').length,cd=cq.filter(r=>r.kind==='decision'||r.kind==='blocked').length,cb=cq.length-ca-cd;
+  setNode('nd_capu',cq.length,`${ca} leo thang · ${cd} chờ quyết/chặn · ${cb} diff hành vi chờ đọc`);capuSync(cq);
   const sg=$('sgateQ'),cg=$('gateQ');if(sg)sg.textContent=`${specGate.length} chờ`;if(cg)cg.textContent=`${codeGate.length} chờ`;
   const gr=$('gateRev');if(gr)gr.textContent=`Spec Gate: ${hired.has('spec-critic')?'spec-critic':'chưa tuyển'} · Code Gate: gate.py + ${hired.has('adversary')?'adversary':'chưa tuyển'}`;
   const rt=$('relTxt');if(rt)rt.textContent=`${wk} release 7 ngày qua · mỗi merge = 1 deploy`;
@@ -1064,7 +1153,7 @@ function drawModel(x){
   // quy tắc A: khối sáng theo việc trong sổ cái, không cần dot
   const insBusy=T.some(t=>t.owner==='insight'&&(t.state==='doing'||t.state==='rework'));
   STATECOL={nd_intents:specNew.length?MC.spec:null,nd_spec:specDoing.length?MC.spec:null,gt_spec:specGate.length?MC.spec:null,nd_respec:specRw.length?MC.back:null,nd_exec:(execDoing.length||execNew.length)?MC.code:null,nd_rework:execRw.length?MC.back:null,gt_code:codeGate.length?MC.code:null,
-    nd_capu:esc.length?MC.bad:(capuRead.length?MC.code:null),nd_insight:insBusy?MC.ins:null,nd_rel:null};
+    nd_capu:(ca+cd)?MC.bad:(cb?MC.code:null),nd_insight:insBusy?MC.ins:null,nd_rel:null};
   SUMT=T;SUMH={nd_intents:specNew,nd_spec:specDoing,gt_spec:specGate,nd_respec:specRw,nd_exec:execDoing.concat(execNew),nd_rework:execRw,gt_code:codeGate,nd_capu:esc.concat(capuRead),nd_insight:T.filter(t=>t.owner==='insight'&&(t.state==='doing'||t.state==='rework'))};
   Object.keys(STATECOL).forEach(applyLit);sumRefresh();
   // Insight: báo cáo tuần mới trong dashboard.json → một dot nguồn → Insight → Ý định
@@ -1080,6 +1169,7 @@ function render(){
   if(!D)return;
   for(const [k,t] of fresh)if(Date.now()-t>6000)fresh.delete(k);
   const mg=merged(),all=derive(mg);
+  CAPU_T=mg.tasks;
   let x=all;
   if(PF!=='all'){   // việc được lọc + sự kiện của chúng; sự kiện không có task chỉ hiện ở Tất cả
     const pm=new Map(mg.tasks.map(t=>[t.id,prodOf(t)]));
@@ -1095,7 +1185,7 @@ async function load(){
   try{
     const res=await fetch(DATA_URL+'?t='+Date.now(),{cache:'no-store'});
     if(!res.ok)throw new Error('HTTP '+res.status);
-    const prev=D;D=await res.json();
+    const prev=D;D=await res.json();if(Array.isArray(D.events))D.events=D.events.filter(e=>e.event!=='merged');
     if(prev){const old=new Set(prev.events.map(evKey));D.events.forEach(e=>{const k=evKey(e);if(!old.has(k)&&!liveEvents.has(k))fresh.set(k,Date.now())})}
     $('banner').style.display='none';
     render();
