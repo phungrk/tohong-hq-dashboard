@@ -1164,7 +1164,7 @@ function krDraw(){
   if(PF==='all')stats.push(['specs',m.specs||0,'spec']);
   const key=PF+JSON.stringify([stats,items]);
   if(key===KR_KEY)return;KR_KEY=key;
-  const panel=document.querySelector('#kr-drawer [data-kr-panel]'),sc=panel.scrollTop,box=$('kr-body');
+  const panel=document.querySelector('#kr-drawer [data-kr-panel]'),sc=panel.scrollTop,box=$('kr-body'),act=document.activeElement,inDr=!!(act&&$('kr-drawer').contains(act)),keep=inDr&&act.getAttribute&&act.getAttribute('href');
   box.textContent='';
   const st=document.createElement('div');st.className='kr-stats';
   stats.forEach(([k,v,l])=>{const e=document.createElement('span');e.setAttribute('data-kr-stat',k);e.setAttribute('data-value',String(v));const b=document.createElement('b');b.textContent=String(v);e.append(b,' '+l);st.appendChild(e)});
@@ -1180,7 +1180,8 @@ function krDraw(){
     if(x.source){const s2=document.createElement('span');s2.className='ki-src';s2.textContent=`nguồn ${x.source}`;d.appendChild(s2)}
     const a=document.createElement('a');a.setAttribute('data-kr-link','');a.href=x.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='Mở trên GitHub';d.appendChild(a);
     sec.appendChild(d)});
-  panel.scrollTop=sc}
+  panel.scrollTop=sc;
+  if(inDr){const a=keep&&[...box.querySelectorAll('a')].find(x=>x.getAttribute('href')===keep);(a||$('kr-drawer-close')).focus({preventScroll:true})}}
 function krOpen(){if(KR_OPEN)return;KR_OPEN=true;KR_KEY='';krDraw();$('kr-drawer').hidden=false;$('kr-drawer-close').focus()}
 function krClose(){if(!KR_OPEN)return;KR_OPEN=false;$('kr-drawer').hidden=true;const g=$('nd_kr');if(g)g.focus({preventScroll:true})}
 (function krInit(){
