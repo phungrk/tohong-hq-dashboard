@@ -903,7 +903,7 @@ function legsFor(e,task){
 // 11 nhân vật pixel art (path SVG nội tuyến). Trạng thái suy ra từ khối sáng (busy/ping), dot rời (give), dot chạm (take) và việc escalated (wait).
 // Vị trí nhân vật lấy từ hình chính của khối (không còn toạ độ cứng): khối chữ nhật → giữa bề ngang, cách mép trên CH_TOP; cổng → tâm vòng tròn.
 const CH_AT={nd_intents:['h','scroll'],nd_spec:['b','pen'],nd_respec:['b','eraser'],gt_spec:['b','lens'],nd_exec:['b','hat'],nd_rework:['b','wrench'],gt_code:['b','shield'],nd_capu:['h','stamp'],nd_insight:['b','chart'],nd_kr:['b','books'],nd_prod:['b','headset']};
-const CH_S=1.1,CH_TOP=33;
+const CH_S=1.1,CH_TOP=29;
 const CH_ANIM={idle:'blink',work:'work',give:'give',take:'take',wait:'wait'};
 const CH_MS=1200,BUB_MS=2000,WAIT_MS=3000,BUB_CAP=3,CH={},BUB=[],CH_DIR={};let chSeq=0;
 const rc=(...r)=>r.map(([x,y,w,h])=>`M${x} ${y}h${w}v${h}h${-w}z`).join('');
