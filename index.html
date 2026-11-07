@@ -1064,10 +1064,19 @@ function sumRefresh(){
 (function sumInit(){
   const sv=$('fx_s').ownerSVGElement;
   // vùng bấm: thân bot nới 8px mỗi phía, tối thiểu 44x44px màn hình (đơn vị cục bộ của nhân vật = 2,2 u)
-  function fitHits(){const k=CH_S*((sv.getBoundingClientRect().width||1000)/1000);
-    Object.keys(CH).forEach(id=>{const hx=Math.max(11+8/k,22/k),bot=15+8/k,tot=Math.max(2*bot,44/k),h=CH[id].hit;
-      // đủ 44px nhưng phần thừa dồn lên phía trên thân: đáy vùng bấm không xuống tới số đếm của khối (T-095)
-      h.setAttribute('x',-hx);h.setAttribute('y',-(tot-bot));h.setAttribute('width',2*hx);h.setAttribute('height',tot)})}
+  function fitHits(){const sr=sv.getBoundingClientRect(),k=CH_S*((sr.width||1000)/1000);
+    const shapes=[...sv.querySelectorAll('g.node[id]>rect,g.gate[id]>circle,g.res[id]>rect')].map(e=>({id:e.parentNode.id,r:e.getBoundingClientRect()}));
+    Object.keys(CH).forEach(id=>{const hx=Math.max(11+8/k,22/k),h=CH[id].hit,dflt=15*k+8,M=CH[id].g.getScreenCTM();
+      let bot=dflt,up=Infinity;
+      if(M&&sr.width){const ox=M.e,oy=M.f;
+        // vùng bấm là hình chữ nhật chứa tâm thân; trên không lấn khối khác, dưới không phủ tâm số đếm của khối mình (T-095, ADR-034)
+        shapes.forEach(o=>{if(o.id!==id&&o.r.bottom<=oy&&o.r.right>ox-hx*k&&o.r.left<ox+hx*k)up=Math.min(up,oy-o.r.bottom-.5)});
+        const n=sv.querySelector('#'+id+' .n');let lim=Infinity;
+        if(n){const q=n.getBoundingClientRect();if(q.height)lim=q.top+q.height/2-oy-.5}
+        const T=Math.max(44,2*dflt);
+        bot=Math.min(lim,Math.max(dflt,T-up,20.5));up=Math.min(up,T-bot)}
+      else up=dflt;
+      up=Math.max(up,0);h.setAttribute('x',-hx);h.setAttribute('y',-up/k);h.setAttribute('width',2*hx);h.setAttribute('height',(up+bot)/k)})}
   Object.keys(CH).forEach(id=>{const g=CH[id].g;
     g.setAttribute('tabindex','0');g.setAttribute('role','button');g.setAttribute('aria-label',SUMN[id]+', xem việc đang giữ');g.setAttribute('aria-expanded','false');
     const hit=document.createElementNS(SVGNS,'rect');hit.setAttribute('class','hit');hit.setAttribute('fill','transparent');g.insertBefore(hit,g.firstChild);CH[id].hit=hit;
