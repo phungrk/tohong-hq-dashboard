@@ -1065,8 +1065,9 @@ function sumRefresh(){
   const sv=$('fx_s').ownerSVGElement;
   // vùng bấm: thân bot nới 8px mỗi phía, tối thiểu 44x44px màn hình (đơn vị cục bộ của nhân vật = 2,2 u)
   function fitHits(){const k=CH_S*((sv.getBoundingClientRect().width||1000)/1000);
-    Object.keys(CH).forEach(id=>{const hx=Math.max(11+8/k,22/k),hy=Math.max(15+8/k,22/k),h=CH[id].hit;
-      h.setAttribute('x',-hx);h.setAttribute('y',-hy);h.setAttribute('width',2*hx);h.setAttribute('height',2*hy)})}
+    Object.keys(CH).forEach(id=>{const hx=Math.max(11+8/k,22/k),bot=15+8/k,tot=Math.max(2*bot,44/k),h=CH[id].hit;
+      // đủ 44px nhưng phần thừa dồn lên phía trên thân: đáy vùng bấm không xuống tới số đếm của khối (T-095)
+      h.setAttribute('x',-hx);h.setAttribute('y',-(tot-bot));h.setAttribute('width',2*hx);h.setAttribute('height',tot)})}
   Object.keys(CH).forEach(id=>{const g=CH[id].g;
     g.setAttribute('tabindex','0');g.setAttribute('role','button');g.setAttribute('aria-label',SUMN[id]+', xem việc đang giữ');g.setAttribute('aria-expanded','false');
     const hit=document.createElementNS(SVGNS,'rect');hit.setAttribute('class','hit');hit.setAttribute('fill','transparent');g.insertBefore(hit,g.firstChild);CH[id].hit=hit;
