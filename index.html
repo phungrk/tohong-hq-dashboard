@@ -1082,6 +1082,11 @@ function sumRefresh(){
     const hit=document.createElementNS(SVGNS,'rect');hit.setAttribute('class','hit');hit.setAttribute('fill','transparent');g.insertBefore(hit,g.firstChild);CH[id].hit=hit;
     g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();sumToggle(id)}})});
   fitHits();
+  // tính lại khi bố cục đổi mà không có resize cửa sổ: dữ liệu vừa vẽ, font nạp xong, svg đổi cỡ (T-095, tải lần đầu ở khung hẹp)
+  let fitRaf=0;const fitSoon=()=>{cancelAnimationFrame(fitRaf);fitRaf=requestAnimationFrame(fitHits)};
+  window.addEventListener('model-drawn',fitSoon);
+  if(window.ResizeObserver)new ResizeObserver(fitSoon).observe(sv);
+  if(document.fonts){document.fonts.ready.then(fitSoon);document.fonts.addEventListener&&document.fonts.addEventListener('loadingdone',fitSoon)}
   window.addEventListener('resize',()=>{fitHits();sumLay()});
   window.addEventListener('model-zoomchange',sumClose);
   document.addEventListener('click',e=>{
@@ -1258,6 +1263,7 @@ function drawModel(x){
   const tmap=new Map(T.map(t=>[t.id,t]));
   (x.recent||[]).forEach(r=>{const k=r.key;if(!k||animated.has(k))return;animated.add(k);emit(legsFor(r.e,tmap.get(r.e.task)),r.e.task)});
   const ml=$('model-live');if(ml)ml.textContent=liveState==='on'?'dot = sự kiện trực tiếp':'dot = sự kiện mới sau mỗi lần tải';
+  window.dispatchEvent(new Event('model-drawn'))
 }
 
 function render(){
