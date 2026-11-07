@@ -233,6 +233,21 @@ footer a{color:inherit}
 /* T-078: modal việc chờ Capu */
 #nd_capu{cursor:pointer}#nd_capu:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 #capu-modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box}
+#kr-drawer{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);display:flex;justify-content:flex-end}
+#kr-drawer[hidden]{display:none}
+#kr-drawer [data-kr-panel]{position:relative;background:var(--panel);color:var(--fg);border-left:1px solid var(--line);box-shadow:-8px 0 32px rgba(0,0,0,.3);width:min(560px,100%);height:100%;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;padding:16px 14px 14px;overflow-wrap:anywhere}
+#kr-drawer h2{margin:0 52px 10px 0;font-size:16px}
+#kr-drawer h3{margin:14px 0 4px;font-size:13px;color:var(--muted);font-family:IBM Plex Mono,monospace}
+#kr-drawer-close{position:absolute;top:6px;right:6px;width:44px;height:44px;font:inherit;font-size:22px;line-height:1;color:var(--fg);background:var(--panel);border:1px solid var(--axis);border-radius:8px;cursor:pointer}
+#kr-drawer-close:focus-visible,#kr-drawer a:focus-visible,#nd_kr:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#kr-drawer .kr-stats{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}
+#kr-drawer [data-kr-stat] b{font-variant-numeric:tabular-nums}
+#kr-drawer [data-kr-inv]{border-top:1px solid var(--line);padding:8px 0;font-size:13px;overflow-wrap:anywhere;word-break:break-word}
+#kr-drawer .ki-id{font-weight:600;font-variant-numeric:tabular-nums;margin-right:6px}
+#kr-drawer .ki-src{color:var(--muted);margin-left:6px}
+#kr-drawer a[data-kr-link]{display:flex;align-items:center;min-height:32px;color:var(--accent);max-width:100%}
+#kr-drawer [data-kr-filter],#kr-drawer [data-kr-empty]{margin:8px 0;color:var(--muted);font-size:13px}
+#nd_kr{cursor:pointer}
 #capu-modal[hidden]{display:none}
 #capu-modal [data-capu-panel]{position:relative;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.3);width:min(560px,100%);max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;padding:16px 14px 14px}
 #capu-modal h2{margin:0 52px 10px 0;font-size:16px;overflow-wrap:anywhere}
@@ -259,6 +274,13 @@ footer a{color:inherit}
     <div class="activity" id="activity" aria-live="polite"></div>
   </header>
   <div class="banner" id="banner"></div>
+<div id="kr-drawer" role="dialog" aria-modal="true" aria-labelledby="kr-title" hidden>
+  <div data-kr-panel>
+    <button id="kr-drawer-close" type="button" aria-label="Đóng">&times;</button>
+    <h2 id="kr-title">Knowledge Reservoir (0 bất biến)</h2>
+    <div id="kr-body"></div>
+  </div>
+</div>
 <div id="capu-modal" role="dialog" aria-modal="true" aria-labelledby="capu-title" hidden>
   <div data-capu-panel>
     <button id="capu-modal-close" type="button" aria-label="Đóng">&times;</button>
@@ -1125,6 +1147,59 @@ function capuClose(){
       f[(i<0?0:(i+(e.shiftKey?f.length-1:1))%f.length)].focus()}
   },true);
 })();
+// Drawer bể tri thức (T-092/T-093): bấm khối Knowledge Reservoir mở danh sách bất biến theo vùng
+let KR_OPEN=false,KR_KEY='';
+function krItems(){const m=(D&&D.model)||{};return (Array.isArray(m.invariant_list)?m.invariant_list:[]).filter(x=>PF==='all'||x.area==='_shared'||x.area===PF||String(x.area).startsWith(PF+'/'))}
+function krCount(){const m=(D&&D.model)||{},inv=m.invariants||{};let n=0;
+  if(PF==='all')return m.invariants_total||0;
+  Object.keys(inv).forEach(k=>{if(k==='_shared'||k===PF||k.startsWith(PF+'/'))n+=inv[k]||0});return n}
+function krSync(){
+  const g=$('nd_kr');if(!g)return;const n=krCount();
+  g.setAttribute('aria-label',`Knowledge Reservoir, ${n} bất biến, bấm để xem danh sách`);
+  if(KR_OPEN)krDraw()}
+function krDraw(){
+  const m=(D&&D.model)||{},n=krCount(),items=krItems();
+  $('kr-title').textContent=`Knowledge Reservoir (${n} bất biến)`;
+  const stats=[['invariants',n,'bất biến'],['adversarial',m.adversarial_evals||0,'eval đối kháng'],['regression',m.regression_evals||0,'hồi quy']];
+  if(PF==='all')stats.push(['specs',m.specs||0,'spec']);
+  const key=PF+JSON.stringify([stats,items]);
+  if(key===KR_KEY)return;KR_KEY=key;
+  const panel=document.querySelector('#kr-drawer [data-kr-panel]'),sc=panel.scrollTop,box=$('kr-body'),act=document.activeElement,inDr=!!(act&&$('kr-drawer').contains(act)),keep=inDr&&act.getAttribute&&act.getAttribute('href');
+  box.textContent='';
+  const st=document.createElement('div');st.className='kr-stats';
+  stats.forEach(([k,v,l])=>{const e=document.createElement('span');e.setAttribute('data-kr-stat',k);e.setAttribute('data-value',String(v));const b=document.createElement('b');b.textContent=String(v);e.append(b,' '+l);st.appendChild(e)});
+  box.appendChild(st);
+  if(PF!=='all'){const f=document.createElement('p');f.setAttribute('data-kr-filter','');f.textContent=`Đang lọc theo sản phẩm: ${PF}. Eval đối kháng và hồi quy tính cả công ty.`;box.appendChild(f)}
+  if(!items.length){const p=document.createElement('p');p.setAttribute('data-kr-empty','');p.textContent='Chưa có bất biến nào trong phạm vi này';box.appendChild(p)}
+  let cur=null,sec=null;
+  items.forEach(x=>{
+    if(x.area!==cur){cur=x.area;sec=document.createElement('section');sec.setAttribute('data-kr-area',x.area);const h=document.createElement('h3');h.textContent=x.area;sec.appendChild(h);box.appendChild(sec)}
+    const d=document.createElement('div');d.setAttribute('data-kr-inv','');d.setAttribute('data-area',x.area);d.setAttribute('data-id',x.id);d.setAttribute('data-source',x.source||'');
+    const id=document.createElement('span');id.className='ki-id';id.textContent=x.id;
+    const nm=document.createElement('span');nm.className='ki-name';nm.textContent=x.name;d.append(id,nm);
+    if(x.source){const s2=document.createElement('span');s2.className='ki-src';s2.textContent=`nguồn ${x.source}`;d.appendChild(s2)}
+    const a=document.createElement('a');a.setAttribute('data-kr-link','');a.href=x.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='Mở trên GitHub';d.appendChild(a);
+    sec.appendChild(d)});
+  panel.scrollTop=sc;
+  if(inDr){const a=keep&&[...box.querySelectorAll('a')].find(x=>x.getAttribute('href')===keep);(a||$('kr-drawer-close')).focus({preventScroll:true})}}
+function krOpen(){if(KR_OPEN)return;KR_OPEN=true;KR_KEY='';krDraw();$('kr-drawer').hidden=false;$('kr-drawer-close').focus()}
+function krClose(){if(!KR_OPEN)return;KR_OPEN=false;$('kr-drawer').hidden=true;const g=$('nd_kr');if(g)g.focus({preventScroll:true})}
+(function krInit(){
+  const g=$('nd_kr'),m=$('kr-drawer');if(!g||!m)return;
+  g.setAttribute('tabindex','0');g.setAttribute('role','button');g.setAttribute('aria-label','Knowledge Reservoir, 0 bất biến, bấm để xem danh sách');
+  g.addEventListener('click',krOpen);
+  g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();krOpen()}});
+  $('kr-drawer-close').addEventListener('click',krClose);
+  m.addEventListener('click',e=>{if(e.target===m)krClose()});
+  // bắt ở window (giai đoạn bắt), như modal Capu: Esc/Tab của drawer đi trước tóm tắt nhân vật và chế độ phóng to
+  window.addEventListener('keydown',e=>{
+    if(!KR_OPEN)return;
+    if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();krClose()}
+    else if(e.key==='Tab'){e.preventDefault();e.stopImmediatePropagation();
+      const f=[...m.querySelectorAll('button,a[href]')],i=f.indexOf(document.activeElement);
+      f[(i<0?0:(i+(e.shiftKey?f.length-1:1))%f.length)].focus()}
+  },true);
+})();
 function setNode(id,n,cap){const g=$(id);if(!g)return;const N=g.querySelector('.n'),C=g.querySelector('.cap');if(N)N.textContent=n;if(C&&cap!==undefined)C.textContent=cap}
 function drawModel(x){
   const T=x.tasks,m=(D&&D.model)||{};const hired=new Set(x.roster.filter(r=>r.status==='Hired').map(r=>r.id));
@@ -1152,6 +1227,7 @@ function drawModel(x){
   tree.khac=(m.invariants_total||0)-tree._shared-tree.planner-tree.hq;
   const scopeN=PF==='all'?(m.invariants_total||0):tree._shared+tree[PF];
   const kt=$('krTxt');if(kt)kt.textContent=`${scopeN} bất biến · ${m.adversarial_evals||0} eval đối kháng · ${m.regression_evals||0} hồi quy`;
+  krSync();
   const kn=$('krNote');if(kn)kn.textContent=PF==='all'?'':'eval đối kháng, hồi quy: cả công ty';
   const kl=document.querySelector('#nd_kr .lbl');if(kl)kl.textContent=m.invariants?(PF==='all'?`${Object.keys(inv).length} vùng · ${m.specs||0} spec trong bể`:`${Object.keys(inv).filter(k=>k==='_shared'||within(k,PF)).length} vùng trong bể`):'chưa có dữ liệu bể';
   const tg=$('krTree');if(tg){
