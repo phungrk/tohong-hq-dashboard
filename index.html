@@ -23,7 +23,7 @@
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.5}
-.page{max-width:1200px;margin:0 auto;padding:24px 16px 48px;display:flex;flex-direction:column;gap:20px}
+.page{max-width:1400px;margin:0 auto;padding:24px 16px 48px;display:flex;flex-direction:column;gap:20px}
 h1{font-family:var(--serif);font-weight:400;font-size:28px;margin:0}
 h2{font-size:16px;font-weight:500;margin:0}
 .take{color:var(--muted);margin:6px 0 0}
@@ -315,76 +315,76 @@ footer a{color:inherit}
   <section class="card" id="model">
       <div class="mhead"><h2>Mô hình Eval-Gated 2029</h2><span id="model-sum-live" class="vh" aria-live="polite" aria-atomic="true"></span><button id="model-zoom" type="button" aria-label="Phóng to bảng Mô hình" aria-expanded="false">Phóng to</button></div>
       <p class="note">Sổ cái đặt lên mô hình vận hành (ADR-010): số trên mỗi khối là việc đang ở đó; dot chạy theo sự kiện thật; khối lên màu từ lúc nhận dot tới lúc dot đi ra. Bể đếm bất biến trong <code>eval/invariants/</code>.</p>
-      <svg viewBox="0 0 1000 1100" role="img" aria-labelledby="mdl-title"><title id="mdl-title">Eval-Gated 2029: Spec Writer, Spec Gate (agent critic), agent code, Code Gate (máy ba tầng eval), Capu, Release, Production, Insight và Knowledge Reservoir; chỉ vẽ các đường có luồng</title>
+      <svg viewBox="0 0 1000 986" role="img" aria-labelledby="mdl-title"><title id="mdl-title">Eval-Gated 2029: Spec Writer, Spec Gate (agent critic), agent code, Code Gate (máy ba tầng eval), Capu, Release, Production, Insight và Knowledge Reservoir; chỉ vẽ các đường có luồng</title>
       <defs><symbol id="ic-human" viewBox="0 0 16 16"><circle cx="8" cy="4.5" r="3"/><path d="M1.5 15.5c0-3.8 2.9-6.5 6.5-6.5s6.5 2.7 6.5 6.5z"/></symbol><symbol id="ic-robot" viewBox="0 0 16 16"><rect x="2.5" y="5" width="11" height="8.5" rx="2"/><rect x="5" y="8" width="2.2" height="2.2" rx=".5" fill="var(--panel)"/><rect x="8.8" y="8" width="2.2" height="2.2" rx=".5" fill="var(--panel)"/><rect x="7.3" y="2" width="1.4" height="3"/><circle cx="8" cy="1.6" r="1.3"/><rect x="0.5" y="7.5" width="2" height="3.5" rx=".6"/><rect x="13.5" y="7.5" width="2" height="3.5" rx=".6"/></symbol></defs>
       <text class="lbl" x="300" y="24" text-anchor="middle">DISCOVER &amp; SPECIFY (+ EVAL)</text>
       <text class="lbl" x="700" y="24" text-anchor="middle">EXECUTE (AGENT)</text>
       <text class="lbl" x="507" y="44" text-anchor="middle" id="gateRev">Spec Gate: agent critic · Code Gate: máy</text>
 
-      <g class="node" id="nd_intents"><rect x="15" y="96" width="150" height="176" rx="10"/><text class="t" x="90" y="214" text-anchor="middle">Ý định</text><text class="n" x="90" y="246" text-anchor="middle">0</text><text class="cap" x="90" y="264" text-anchor="middle">0/0 viết được</text></g>
-      <g class="node" id="nd_spec"><rect x="210" y="96" width="165" height="176" rx="10"/><text class="t" x="292.5" y="214" text-anchor="middle">Spec Writer</text><text class="n" x="292.5" y="246" text-anchor="middle">0</text><text class="cap" x="292.5" y="264" text-anchor="middle">đang viết / chờ</text></g>
-      <g class="node" id="nd_respec"><rect x="210" y="328" width="160" height="176" rx="10"/><text class="t" x="290" y="446" text-anchor="middle">Spec rework</text><text class="n" x="290" y="478" text-anchor="middle">0</text><text class="cap" x="290" y="496" text-anchor="middle">Spec Writer sửa spec + eval</text></g>
-      <g class="node" id="nd_exec"><rect x="610" y="96" width="180" height="176" rx="10"/><text class="t" x="700" y="214" text-anchor="middle">Agent code</text><text class="n" x="700" y="246" text-anchor="middle">0</text><text class="cap" x="700" y="264" text-anchor="middle">đang code / chờ agent</text></g>
-      <g class="node" id="nd_rework"><rect x="830" y="96" width="155" height="176" rx="10"/><text class="t" x="907.5" y="214" text-anchor="middle">Code rework</text><text class="n" x="907.5" y="246" text-anchor="middle">0</text><text class="cap" x="907.5" y="264" text-anchor="middle">agent sửa code / chạy lại</text></g>
-      <g class="node" id="nd_capu"><rect x="795" y="328" width="190" height="176" rx="10"/><text class="t" x="890" y="446" text-anchor="middle">Capu (người)</text><text class="n" x="890" y="478" text-anchor="middle">0</text><text class="cap" x="890" y="496" text-anchor="middle">chờ đọc · 0h còn</text></g>
+      <g class="node" id="nd_intents"><rect x="15" y="96" width="150" height="138" rx="10"/><text class="t" x="90" y="176" text-anchor="middle">Ý định</text><text class="n" x="90" y="208" text-anchor="middle">0</text><text class="cap" x="90" y="226" text-anchor="middle">0/0 viết được</text></g>
+      <g class="node" id="nd_spec"><rect x="210" y="96" width="165" height="138" rx="10"/><text class="t" x="292.5" y="176" text-anchor="middle">Spec Writer</text><text class="n" x="292.5" y="208" text-anchor="middle">0</text><text class="cap" x="292.5" y="226" text-anchor="middle">đang viết / chờ</text></g>
+      <g class="node" id="nd_respec"><rect x="210" y="290" width="160" height="138" rx="10"/><text class="t" x="290" y="370" text-anchor="middle">Spec rework</text><text class="n" x="290" y="402" text-anchor="middle">0</text><text class="cap" x="290" y="420" text-anchor="middle">Spec Writer sửa spec + eval</text></g>
+      <g class="node" id="nd_exec"><rect x="610" y="96" width="180" height="138" rx="10"/><text class="t" x="700" y="176" text-anchor="middle">Agent code</text><text class="n" x="700" y="208" text-anchor="middle">0</text><text class="cap" x="700" y="226" text-anchor="middle">đang code / chờ agent</text></g>
+      <g class="node" id="nd_rework"><rect x="830" y="96" width="155" height="138" rx="10"/><text class="t" x="907.5" y="176" text-anchor="middle">Code rework</text><text class="n" x="907.5" y="208" text-anchor="middle">0</text><text class="cap" x="907.5" y="226" text-anchor="middle">agent sửa code / chạy lại</text></g>
+      <g class="node" id="nd_capu"><rect x="795" y="290" width="190" height="146" rx="10"/><text class="t" x="890" y="370" text-anchor="middle">Capu (người)</text><text class="n" x="890" y="402" text-anchor="middle">0</text><text class="cap" x="890" y="418" text-anchor="middle"><tspan x="890">0 leo thang · 0 chờ quyết/chặn </tspan><tspan x="890" dy="12">0 diff hành vi chờ đọc</tspan></text></g>
 
-      <g class="gate" id="gt_spec" style="--gc:var(--accent)"><circle cx="507" cy="357" r="62" fill="var(--accent)"/><text x="507" y="435" text-anchor="middle" font-size="11">SPEC GATE</text><text x="507" y="449" text-anchor="middle" font-size="8.5" font-weight="400">critic: cách hiểu thứ 2?</text><text x="507" y="461" text-anchor="middle" font-size="8.5" font-weight="400">mâu thuẫn bất biến?</text><text x="507" y="476" text-anchor="middle" font-size="9.5" id="sgateQ">0 chờ</text></g>
-      <g class="gate" id="gt_code" style="--gc:var(--water)"><circle cx="680" cy="422" r="62" fill="var(--water)"/><text x="680" y="500" text-anchor="middle" font-size="11">CODE GATE</text><text x="680" y="514" text-anchor="middle" font-size="8.5" font-weight="400">máy: 3 tầng eval</text><text x="680" y="526" text-anchor="middle" font-size="8.5" font-weight="400">+ agent đối kháng</text><text x="680" y="541" text-anchor="middle" font-size="9.5" id="gateQ">0</text></g>
+      <g class="gate" id="gt_spec" style="--gc:var(--accent)"><circle cx="507" cy="319" r="43" fill="var(--accent)"/><text x="507" y="378" text-anchor="middle" font-size="11">SPEC GATE</text><text x="507" y="392" text-anchor="middle" font-size="8.5" font-weight="400">critic: cách hiểu thứ 2?</text><text x="507" y="404" text-anchor="middle" font-size="8.5" font-weight="400">mâu thuẫn bất biến?</text><text x="507" y="419" text-anchor="middle" font-size="9.5" id="sgateQ">0 chờ</text></g>
+      <g class="gate" id="gt_code" style="--gc:var(--water)"><circle cx="680" cy="384" r="43" fill="var(--water)"/><text x="680" y="443" text-anchor="middle" font-size="11">CODE GATE</text><text x="680" y="457" text-anchor="middle" font-size="8.5" font-weight="400">máy: 3 tầng eval</text><text x="680" y="469" text-anchor="middle" font-size="8.5" font-weight="400">+ agent đối kháng</text><text x="680" y="484" text-anchor="middle" font-size="9.5" id="gateQ">0</text></g>
 
-      <path id="p_intent_spec" class="arr" d="M 165 172 L 208 172"/>
-      <path id="p_spec_gate" class="arr" d="M 375 212 C 420 217 462 247 472 306"/>
-      <path id="p_gate_exec" class="arr" d="M 538 303 C 556 242 570 202 608 192"/>
-      <text class="lbl" x="507" y="162" text-anchor="middle">spec + eval → việc</text>
-      <path id="p_gate_respec" class="arr back" d="M 446 346 C 430 357 410 362 372 372"/>
-      <text class="lbl" x="408" y="348" text-anchor="middle">critic chặn</text>
-      <path id="p_respec_spec" class="arr back" d="M 290 328 L 290 274"/>
-      <text class="lbl" x="298" y="298" text-anchor="start">spec đã sửa → viết lại</text>
-      <path id="p_exec_gate" class="arr" d="M 690 272 L 676 358"/>
-      <text class="lbl" x="670" y="317" text-anchor="end">code + eval</text>
-      <path id="p_gate_rework" class="arr back" d="M 720 375 C 740 342 790 312 850 274"/>
-      <text class="lbl" x="985" y="306" text-anchor="end">code sai / thêm eval</text>
-      <path id="p_rework_exec" class="arr back" d="M 830 172 L 792 172"/>
-      <path id="p_gate_respec2" class="arr back" d="M 622 443 C 600 492 440 532 372 504"/>
-      <text class="lbl" x="432" y="552" text-anchor="start">spec mâu thuẫn → spec rework</text>
-      <path id="p_gate_capu" class="arr" d="M 741 409 L 793 410"/>
-      <text class="lbl" x="768" y="396" text-anchor="middle">bậc B, C</text>
-      <path id="p_capu_exec" class="arr back" d="M 820 328 C 810 302 800 252 792 227"/>
+      <path id="p_intent_spec" class="arr" d="M 165 154 L 208 154"/>
+      <path id="p_spec_gate" class="arr" d="M 375 190 C 420 195 470 225 483 282"/>
+      <path id="p_gate_exec" class="arr" d="M 529 282 C 548 232 570 190 608 176"/>
+      <text class="lbl" x="507" y="150" text-anchor="middle">spec + eval → việc</text>
+      <path id="p_gate_respec" class="arr back" d="M 465 310 C 440 320 410 328 372 334"/>
+      <text class="lbl" x="408" y="291" text-anchor="middle">critic chặn</text>
+      <path id="p_respec_spec" class="arr back" d="M 290 290 L 290 236"/>
+      <text class="lbl" x="298" y="263" text-anchor="start">spec đã sửa → viết lại</text>
+      <path id="p_exec_gate" class="arr" d="M 690 234 L 678 339"/>
+      <text class="lbl" x="670" y="287" text-anchor="end">code + eval</text>
+      <path id="p_gate_rework" class="arr back" d="M 708 351 C 735 320 790 280 850 236"/>
+      <text class="lbl" x="985" y="262" text-anchor="end">code sai / thêm eval</text>
+      <path id="p_rework_exec" class="arr back" d="M 830 154 L 792 154"/>
+      <path id="p_gate_respec2" class="arr back" d="M 640 399 C 620 440 440 450 372 416"/>
+      <text class="lbl" x="432" y="476" text-anchor="start">spec mâu thuẫn → spec rework</text>
+      <path id="p_gate_capu" class="arr" d="M 723 375 L 793 372"/>
+      <text class="lbl" x="768" y="360" text-anchor="middle">bậc B, C</text>
+      <path id="p_capu_exec" class="arr back" d="M 820 290 C 810 265 800 225 792 198"/>
 
-      <g class="res kr" id="nd_kr"><rect x="205" y="562" width="340" height="176" rx="12"/><text class="t" x="375" y="680" text-anchor="middle" font-size="12">KNOWLEDGE RESERVOIR</text><text id="krTxt" x="375" y="700" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11.5">0 bất biến · 0 eval đối kháng · 0 eval hồi quy</text><text class="lbl" x="375" y="715" text-anchor="middle">spec, eval, bất biến, insight</text><text id="krNote" class="kr-note" x="375" y="729"></text><g id="krTree"><text class="kr-row" data-kr-scope="_shared" x="450" y="590">_shared 0</text><text class="kr-row" data-kr-scope="planner" x="450" y="607">planner 0</text><text class="kr-row" data-kr-scope="hq" x="450" y="624">hq 0</text></g></g>
-      <path id="p_gate_kr" class="arr" d="M 453 388 C 430 432 425 492 420 560"/>
-      <text class="lbl" x="414" y="540" text-anchor="end">spec đã duyệt</text>
-      <text class="lbl" x="414" y="553" text-anchor="end">→ lưu bất biến</text>
-      <path id="p_gate_kr2" class="arr" d="M 636 466 C 620 532 590 552 547 587"/>
-      <text class="lbl" x="598" y="580" text-anchor="start">eval tầng 3</text>
-      <path id="p_kr_gate" class="arr" d="M 547 662 C 610 652 625 532 618 422"/>
-      <text class="lbl" x="556" y="677" text-anchor="start">eval hồi quy</text>
-      <path id="p_kr_spec" class="arr back" d="M 205 652 C 170 632 175 412 212 264"/>
-      <text class="lbl" x="168" y="442" text-anchor="end">đọc bể</text>
+      <g class="res kr" id="nd_kr"><rect x="205" y="486" width="340" height="138" rx="12"/><text class="t" x="375" y="566" text-anchor="middle" font-size="12">KNOWLEDGE RESERVOIR</text><text id="krTxt" x="375" y="586" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11.5">0 bất biến · 0 eval đối kháng · 0 eval hồi quy</text><text class="lbl" x="375" y="601" text-anchor="middle">spec, eval, bất biến, insight</text><text id="krNote" class="kr-note" x="375" y="615"></text><g id="krTree"><text class="kr-row" data-kr-scope="_shared" x="450" y="514">_shared 0</text><text class="kr-row" data-kr-scope="planner" x="450" y="531">planner 0</text><text class="kr-row" data-kr-scope="hq" x="450" y="548">hq 0</text></g></g>
+      <path id="p_gate_kr" class="arr" d="M 470 341 C 452 385 430 430 420 484"/>
+      <text class="lbl" x="414" y="458" text-anchor="end">spec đã duyệt</text>
+      <text class="lbl" x="414" y="471" text-anchor="end">→ lưu bất biến</text>
+      <path id="p_gate_kr2" class="arr" d="M 650 414 C 635 460 590 490 547 511"/>
+      <text class="lbl" x="606" y="501" text-anchor="start">eval tầng 3</text>
+      <path id="p_kr_gate" class="arr" d="M 547 586 C 600 580 635 480 637 386"/>
+      <text class="lbl" x="556" y="601" text-anchor="start">eval hồi quy</text>
+      <path id="p_kr_spec" class="arr back" d="M 205 576 C 170 556 175 380 212 236"/>
+      <text class="lbl" x="168" y="400" text-anchor="end">đọc bể</text>
 
-      <path id="p_gate_rel" class="arr" d="M 734 453 C 760 452 800 512 790 585"/>
-      <text class="lbl" x="812" y="532" text-anchor="start">bậc A, B: merge</text>
-      <path id="p_capu_res" class="arr" d="M 940 504 C 1000 572 990 692 884 722"/>
-      <text class="lbl" x="960" y="622" text-anchor="middle">bậc C</text>
-      <g class="node rel" id="nd_rel"><rect x="640" y="587" width="260" height="40" rx="8"/><text class="t" x="770" y="602" text-anchor="middle">RELEASE (CD)</text><text class="cap" x="770" y="617" text-anchor="middle" id="relTxt">0 tuần này · mỗi merge = 1 deploy</text></g>
-      <path id="p_rel_res" class="arr" d="M 770 627 L 770 670"/>
-      <g class="res" id="nd_prod"><rect x="650" y="672" width="240" height="176" rx="12"/><text class="t" x="770" y="790" text-anchor="middle" font-size="12">PRODUCTION</text><text id="resTxt" x="770" y="814" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" fill="var(--ok)">0 release · 0 có lỗi</text><text class="lbl" x="770" y="834" text-anchor="middle">code đang chạy, người dùng thật</text></g>
+      <path id="p_gate_rel" class="arr" d="M 718 406 C 745 405 790 450 790 509"/>
+      <text class="lbl" x="812" y="472" text-anchor="start">bậc A, B: merge</text>
+      <path id="p_capu_res" class="arr" d="M 940 436 C 1000 504 990 624 884 646"/>
+      <text class="lbl" x="960" y="546" text-anchor="middle">bậc C</text>
+      <g class="node rel" id="nd_rel"><rect x="640" y="511" width="260" height="40" rx="8"/><text class="t" x="770" y="526" text-anchor="middle">RELEASE (CD)</text><text class="cap" x="770" y="541" text-anchor="middle" id="relTxt">0 tuần này · mỗi merge = 1 deploy</text></g>
+      <path id="p_rel_res" class="arr" d="M 770 551 L 770 594"/>
+      <g class="res" id="nd_prod"><rect x="650" y="596" width="240" height="138" rx="12"/><text class="t" x="770" y="676" text-anchor="middle" font-size="12">PRODUCTION</text><text id="resTxt" x="770" y="700" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" fill="var(--ok)">0 release · 0 có lỗi</text><text class="lbl" x="770" y="720" text-anchor="middle">code đang chạy, người dùng thật</text></g>
 
-      <g class="node" id="nd_insight"><rect x="15" y="782" width="160" height="160" rx="10"/><text class="t" x="95" y="900" text-anchor="middle">Insight</text><text class="cap" x="95" y="922" text-anchor="middle" id="insCap">0 báo cáo · 0 eval hồi quy</text></g>
-      <g class="node" id="src_data"><rect x="15" y="992" width="160" height="26" rx="6"/><text class="cap" x="95" y="1005" text-anchor="middle" dominant-baseline="central">Dữ liệu sản phẩm (log, sự kiện)</text></g>
-      <g class="node" id="src_inc"><rect x="15" y="1026" width="160" height="26" rx="6"/><text class="cap" x="95" y="1039" text-anchor="middle" dominant-baseline="central">Sự cố production</text></g>
-      <g class="node" id="src_fb"><rect x="15" y="1060" width="160" height="26" rx="6"/><text class="cap" x="95" y="1073" text-anchor="middle" dominant-baseline="central">Phản hồi người dùng, Slack</text></g>
-      <path id="p_src1" class="arr" d="M 55 992 L 55 944"/>
-      <path id="p_src2" class="arr" d="M 95 1026 L 95 944"/>
-      <path id="p_src3" class="arr" d="M 135 1060 L 135 944"/>
-      <text class="lbl" x="187" y="1044" text-anchor="start">input</text>
-      <path id="p_res_insight" class="arr" d="M 650 802 C 500 832 330 862 177 862"/>
-      <text class="lbl" x="410" y="890" text-anchor="middle">ống hồi: dữ liệu vận hành, sự cố</text>
-      <path id="p_insight_intent" class="arr" d="M 95 782 L 95 274"/>
-      <text class="lbl" x="103" y="512" text-anchor="start">báo cáo</text>
-      <text class="lbl" x="103" y="525" text-anchor="start">insight tuần</text>
-      <path id="p_insight_kr" class="arr" d="M 175 802 C 215 792 240 777 252 740"/>
-      <text class="lbl" x="186" y="822" text-anchor="start">eval hồi quy,</text>
-      <text class="lbl" x="186" y="835" text-anchor="start">insight → bể</text>
+      <g class="node" id="nd_insight"><rect x="15" y="706" width="160" height="122" rx="10"/><text class="t" x="95" y="786" text-anchor="middle">Insight</text><text class="cap" x="95" y="808" text-anchor="middle" id="insCap">0 báo cáo · 0 eval hồi quy</text></g>
+      <g class="node" id="src_data"><rect x="15" y="878" width="160" height="26" rx="6"/><text class="cap" x="95" y="891" text-anchor="middle" dominant-baseline="central">Dữ liệu sản phẩm (log, sự kiện)</text></g>
+      <g class="node" id="src_inc"><rect x="15" y="912" width="160" height="26" rx="6"/><text class="cap" x="95" y="925" text-anchor="middle" dominant-baseline="central">Sự cố production</text></g>
+      <g class="node" id="src_fb"><rect x="15" y="946" width="160" height="26" rx="6"/><text class="cap" x="95" y="959" text-anchor="middle" dominant-baseline="central">Phản hồi người dùng, Slack</text></g>
+      <path id="p_src1" class="arr" d="M 55 878 L 55 830"/>
+      <path id="p_src2" class="arr" d="M 95 912 L 95 830"/>
+      <path id="p_src3" class="arr" d="M 135 946 L 135 830"/>
+      <text class="lbl" x="187" y="930" text-anchor="start">input</text>
+      <path id="p_res_insight" class="arr" d="M 650 712 C 500 745 330 786 177 786"/>
+      <text class="lbl" x="410" y="810" text-anchor="middle">ống hồi: dữ liệu vận hành, sự cố</text>
+      <path id="p_insight_intent" class="arr" d="M 95 706 L 95 236"/>
+      <text class="lbl" x="103" y="464" text-anchor="start">báo cáo</text>
+      <text class="lbl" x="103" y="477" text-anchor="start">insight tuần</text>
+      <path id="p_insight_kr" class="arr" d="M 175 726 C 215 710 240 665 252 626"/>
+      <text class="lbl" x="186" y="746" text-anchor="start">eval hồi quy,</text>
+      <text class="lbl" x="186" y="759" text-anchor="start">insight → bể</text>
       <g class="fx" id="fx_f"></g><g id="chars"></g><g id="fx_b"></g><g id="fx_s"></g>
     </svg>
       <div class="mlegend"><span><i class="dotleg" style="background:#14754d"></i>ý định / spec</span><span><i class="dotleg" style="background:#2b7fb8"></i>việc / code</span><span><i class="dotleg" style="background:#d9931f"></i>trả về / rework</span><span><i class="dotleg" style="background:#d33"></i>lỗi / leo thang</span><span><i class="dotleg" style="background:#8a5cf6"></i>eval sinh thêm / insight / đọc bể</span><span>Khối sáng = đang xử lý (có việc ở đó hoặc dot vừa tới)</span><span id="model-live"></span></div>
@@ -903,7 +903,7 @@ function legsFor(e,task){
 // 11 nhân vật pixel art (path SVG nội tuyến). Trạng thái suy ra từ khối sáng (busy/ping), dot rời (give), dot chạm (take) và việc escalated (wait).
 // Vị trí nhân vật lấy từ hình chính của khối (không còn toạ độ cứng): khối chữ nhật → giữa bề ngang, cách mép trên CH_TOP; cổng → tâm vòng tròn.
 const CH_AT={nd_intents:['h','scroll'],nd_spec:['b','pen'],nd_respec:['b','eraser'],gt_spec:['b','lens'],nd_exec:['b','hat'],nd_rework:['b','wrench'],gt_code:['b','shield'],nd_capu:['h','stamp'],nd_insight:['b','chart'],nd_kr:['b','books'],nd_prod:['b','headset']};
-const CH_S=2.2,CH_TOP=52;
+const CH_S=1.1,CH_TOP=29;
 const CH_ANIM={idle:'blink',work:'work',give:'give',take:'take',wait:'wait'};
 const CH_MS=1200,BUB_MS=2000,WAIT_MS=3000,BUB_CAP=3,CH={},BUB=[],CH_DIR={};let chSeq=0;
 const rc=(...r)=>r.map(([x,y,w,h])=>`M${x} ${y}h${w}v${h}h${-w}z`).join('');
@@ -1064,14 +1064,29 @@ function sumRefresh(){
 (function sumInit(){
   const sv=$('fx_s').ownerSVGElement;
   // vùng bấm: thân bot nới 8px mỗi phía, tối thiểu 44x44px màn hình (đơn vị cục bộ của nhân vật = 2,2 u)
-  function fitHits(){const k=CH_S*((sv.getBoundingClientRect().width||1000)/1000);
-    Object.keys(CH).forEach(id=>{const hx=Math.max(11+8/k,22/k),hy=Math.max(15+8/k,22/k),h=CH[id].hit;
-      h.setAttribute('x',-hx);h.setAttribute('y',-hy);h.setAttribute('width',2*hx);h.setAttribute('height',2*hy)})}
+  function fitHits(){const sr=sv.getBoundingClientRect(),k=CH_S*((sr.width||1000)/1000);
+    const shapes=[...sv.querySelectorAll('g.node[id]>rect,g.gate[id]>circle,g.res[id]>rect')].map(e=>({id:e.parentNode.id,r:e.getBoundingClientRect()}));
+    Object.keys(CH).forEach(id=>{const hx=Math.max(11+8/k,22/k),h=CH[id].hit,dflt=15*k+8,M=CH[id].g.getScreenCTM();
+      let bot=dflt,up=Infinity;
+      if(M&&sr.width){const ox=M.e,oy=M.f;
+        // vùng bấm là hình chữ nhật chứa tâm thân; trên không lấn khối khác, dưới không phủ tâm số đếm của khối mình (T-095, ADR-034)
+        shapes.forEach(o=>{if(o.id!==id&&o.r.bottom<=oy&&o.r.right>ox-hx*k&&o.r.left<ox+hx*k)up=Math.min(up,oy-o.r.bottom-.5)});
+        const n=sv.querySelector('#'+id+' .n');let lim=Infinity;
+        if(n){const q=n.getBoundingClientRect();if(q.height)lim=q.top+q.height/2-oy-.5}
+        const T=Math.max(44,2*dflt);
+        bot=Math.min(lim,Math.max(dflt,T-up,20.5));up=Math.min(up,T-bot)}
+      else up=dflt;
+      up=Math.max(up,0);h.setAttribute('x',-hx);h.setAttribute('y',-up/k);h.setAttribute('width',2*hx);h.setAttribute('height',(up+bot)/k)})}
   Object.keys(CH).forEach(id=>{const g=CH[id].g;
     g.setAttribute('tabindex','0');g.setAttribute('role','button');g.setAttribute('aria-label',SUMN[id]+', xem việc đang giữ');g.setAttribute('aria-expanded','false');
     const hit=document.createElementNS(SVGNS,'rect');hit.setAttribute('class','hit');hit.setAttribute('fill','transparent');g.insertBefore(hit,g.firstChild);CH[id].hit=hit;
     g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();sumToggle(id)}})});
   fitHits();
+  // tính lại khi bố cục đổi mà không có resize cửa sổ: dữ liệu vừa vẽ, font nạp xong, svg đổi cỡ (T-095, tải lần đầu ở khung hẹp)
+  let fitRaf=0;const fitSoon=()=>{cancelAnimationFrame(fitRaf);fitRaf=requestAnimationFrame(fitHits)};
+  window.addEventListener('model-drawn',fitSoon);
+  if(window.ResizeObserver)new ResizeObserver(fitSoon).observe(sv);
+  if(document.fonts){document.fonts.ready.then(fitSoon);document.fonts.addEventListener&&document.fonts.addEventListener('loadingdone',fitSoon)}
   window.addEventListener('resize',()=>{fitHits();sumLay()});
   window.addEventListener('model-zoomchange',sumClose);
   document.addEventListener('click',e=>{
@@ -1200,7 +1215,7 @@ function krClose(){if(!KR_OPEN)return;KR_OPEN=false;$('kr-drawer').hidden=true;c
       f[(i<0?0:(i+(e.shiftKey?f.length-1:1))%f.length)].focus()}
   },true);
 })();
-function setNode(id,n,cap){const g=$(id);if(!g)return;const N=g.querySelector('.n'),C=g.querySelector('.cap');if(N)N.textContent=n;if(C&&cap!==undefined)C.textContent=cap}
+function setNode(id,n,cap){const g=$(id);if(!g)return;const N=g.querySelector('.n'),C=g.querySelector('.cap');if(N)N.textContent=n;if(C&&cap!==undefined){if(Array.isArray(cap)){C.textContent='';cap.forEach((t,i)=>{const e=document.createElementNS(SVGNS,'tspan');e.setAttribute('x',C.getAttribute('x'));if(i)e.setAttribute('dy','12');e.textContent=t;C.appendChild(e)})}else C.textContent=cap}}
 function drawModel(x){
   const T=x.tasks,m=(D&&D.model)||{};const hired=new Set(x.roster.filter(r=>r.status==='Hired').map(r=>r.id));
   const by=(own,...st)=>T.filter(t=>t.owner===own&&st.includes(t.state));
@@ -1215,7 +1230,7 @@ function drawModel(x){
   setNode('nd_exec',execDoing.length,`${execDoing.length} đang code · ${execNew.length} chờ`);
   setNode('nd_rework',execRw.length,`đang sửa · ${T.reduce((a,t)=>a+(t.evals_added||0),0)} lần thêm eval`);
   const cq=capuRows(),ca=cq.filter(r=>r.kind==='escalated').length,cd=cq.filter(r=>r.kind==='decision'||r.kind==='blocked').length,cb=cq.length-ca-cd;
-  setNode('nd_capu',cq.length,`${ca} leo thang · ${cd} chờ quyết/chặn · ${cb} diff hành vi chờ đọc`);capuSync(cq);
+  setNode('nd_capu',cq.length,[`${ca} leo thang · ${cd} chờ quyết/chặn `,`${cb} diff hành vi chờ đọc`]);capuSync(cq);
   const sg=$('sgateQ'),cg=$('gateQ');if(sg)sg.textContent=`${specGate.length} chờ`;if(cg)cg.textContent=`${codeGate.length} chờ`;
   const gr=$('gateRev');if(gr)gr.textContent=`Spec Gate: ${hired.has('spec-critic')?'spec-critic':'chưa tuyển'} · Code Gate: gate.py + ${hired.has('adversary')?'adversary':'chưa tuyển'}`;
   const rt=$('relTxt');if(rt)rt.textContent=`${wk} release 7 ngày qua · mỗi merge = 1 deploy`;
@@ -1248,6 +1263,7 @@ function drawModel(x){
   const tmap=new Map(T.map(t=>[t.id,t]));
   (x.recent||[]).forEach(r=>{const k=r.key;if(!k||animated.has(k))return;animated.add(k);emit(legsFor(r.e,tmap.get(r.e.task)),r.e.task)});
   const ml=$('model-live');if(ml)ml.textContent=liveState==='on'?'dot = sự kiện trực tiếp':'dot = sự kiện mới sau mỗi lần tải';
+  window.dispatchEvent(new Event('model-drawn'))
 }
 
 function render(){
