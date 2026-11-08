@@ -246,7 +246,7 @@ footer a{color:inherit}
 #kr-drawer .ki-id{font-weight:600;font-variant-numeric:tabular-nums;margin-right:6px}
 #kr-drawer .ki-src{color:var(--muted);margin-left:6px}
 #kr-drawer a[data-kr-link]{display:flex;align-items:center;min-height:32px;color:var(--accent);max-width:100%}
-#kr-drawer-resize{position:absolute;top:0;bottom:0;right:calc(var(--kr-w,min(560px,100%)) - 6px);width:12px;cursor:col-resize;touch-action:none;z-index:2;background:transparent}
+#kr-drawer-resize{position:absolute;top:0;bottom:0;right:calc(var(--kr-w,min(560px,100%)) - 12px);width:12px;cursor:col-resize;touch-action:none;z-index:2;background:transparent}
 #kr-drawer-resize::after{content:"";position:absolute;top:50%;left:4px;width:4px;height:48px;margin-top:-24px;border-radius:2px;background:var(--axis)}
 #kr-drawer-resize:hover::after,#kr-drawer-resize:focus-visible::after{background:var(--accent)}
 #kr-drawer-resize:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
@@ -1237,7 +1237,7 @@ function krDraw(){
     tl.appendChild(b)});
   box.appendChild(tl);
   // tabpanel
-  const tp=krMk('div',{role:'tabpanel','data-kr-tabpanel':KR_TAB});box.appendChild(tp);
+  const tp=krMk('div',{role:'tabpanel','aria-label':KR_TABS.find(t=>t[0]===KR_TAB)[1],'data-kr-tabpanel':KR_TAB});box.appendChild(tp);
   if(!list||!list.length){
     const msg=KR_TAB==='invariants'?'Chưa có bất biến nào trong phạm vi này':(list===null&&cnt[KR_TAB]>0)?'Chưa có danh sách chi tiết':KR_TAB==='adversarial'?'Chưa có eval đối kháng nào':'Chưa có eval hồi quy nào';
     tp.appendChild(krMk('p',{'data-kr-empty':''},msg))}
@@ -1260,8 +1260,8 @@ function krDraw(){
   if(f)f.focus({preventScroll:true})}
 function krSelect(k,focus){
   if(k===KR_TAB&&!focus)return;
-  const was=KR_TAB;KR_TAB=k;KR_LIMIT=KR_STEP;if(focus)KR_FOCUS=`[data-kr-tab="${k}"]`;
-  if(was!==k)document.querySelector('#kr-drawer [data-kr-panel]').scrollTop=0;
+  const was=KR_TAB;if(focus)KR_FOCUS=`[data-kr-tab="${k}"]`;
+  if(was!==k){KR_TAB=k;KR_LIMIT=KR_STEP;document.querySelector('#kr-drawer [data-kr-panel]').scrollTop=0}
   krDraw()}
 function krMore(){
   const list=krList(KR_TAB)||[],prev=Math.min(list.length,KR_LIMIT);
