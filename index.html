@@ -235,17 +235,27 @@ footer a{color:inherit}
 #capu-modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box}
 #kr-drawer{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);display:flex;justify-content:flex-end}
 #kr-drawer[hidden]{display:none}
-#kr-drawer [data-kr-panel]{position:relative;background:var(--panel);color:var(--fg);border-left:1px solid var(--line);box-shadow:-8px 0 32px rgba(0,0,0,.3);width:min(560px,100%);height:100%;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;padding:16px 14px 14px;overflow-wrap:anywhere}
+#kr-drawer [data-kr-panel]{position:relative;background:var(--panel);color:var(--fg);border-left:1px solid var(--line);box-shadow:-8px 0 32px rgba(0,0,0,.3);width:var(--kr-w,min(560px,100%));max-width:100%;height:100%;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;padding:16px 14px 14px;overflow-wrap:anywhere}
 #kr-drawer h2{margin:0 52px 10px 0;font-size:16px}
 #kr-drawer h3{margin:14px 0 4px;font-size:13px;color:var(--muted);font-family:IBM Plex Mono,monospace}
 #kr-drawer-close{position:absolute;top:6px;right:6px;width:44px;height:44px;font:inherit;font-size:22px;line-height:1;color:var(--fg);background:var(--panel);border:1px solid var(--axis);border-radius:8px;cursor:pointer}
 #kr-drawer-close:focus-visible,#kr-drawer a:focus-visible,#nd_kr:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #kr-drawer .kr-stats{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}
 #kr-drawer [data-kr-stat] b{font-variant-numeric:tabular-nums}
-#kr-drawer [data-kr-inv]{border-top:1px solid var(--line);padding:8px 0;font-size:13px;overflow-wrap:anywhere;word-break:break-word}
+#kr-drawer [data-kr-inv],#kr-drawer [data-kr-adv],#kr-drawer [data-kr-reg]{border-top:1px solid var(--line);padding:8px 0;font-size:13px;overflow-wrap:anywhere;word-break:break-word}
 #kr-drawer .ki-id{font-weight:600;font-variant-numeric:tabular-nums;margin-right:6px}
 #kr-drawer .ki-src{color:var(--muted);margin-left:6px}
 #kr-drawer a[data-kr-link]{display:flex;align-items:center;min-height:32px;color:var(--accent);max-width:100%}
+#kr-drawer-resize{position:absolute;top:0;bottom:0;right:calc(var(--kr-w,min(560px,100%)) - 6px);width:12px;cursor:col-resize;touch-action:none;z-index:2;background:transparent}
+#kr-drawer-resize::after{content:"";position:absolute;top:50%;left:4px;width:4px;height:48px;margin-top:-24px;border-radius:2px;background:var(--axis)}
+#kr-drawer-resize:hover::after,#kr-drawer-resize:focus-visible::after{background:var(--accent)}
+#kr-drawer-resize:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+@media (max-width:480px){#kr-drawer-resize{display:none}}
+#kr-drawer [role=tablist]{display:flex;gap:4px;margin:10px 0 4px}
+#kr-drawer [data-kr-tab]{flex:1 1 0;min-width:0;min-height:44px;padding:4px 6px;font:inherit;font-size:13px;line-height:1.25;color:var(--muted);background:var(--panel);border:1px solid var(--axis);border-radius:8px;cursor:pointer;overflow-wrap:anywhere}
+#kr-drawer [data-kr-tab][aria-selected=true]{color:var(--fg);border-color:var(--accent);font-weight:600}
+#kr-drawer [data-kr-tab]:focus-visible,#kr-drawer [data-kr-more]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#kr-drawer [data-kr-more]{display:block;box-sizing:border-box;width:100%;min-width:120px;min-height:44px;margin:12px 0 4px;padding:8px 12px;font:inherit;font-size:14px;color:var(--fg);background:var(--panel);border:1px solid var(--axis);border-radius:8px;cursor:pointer}
 #kr-drawer [data-kr-filter],#kr-drawer [data-kr-empty]{margin:8px 0;color:var(--muted);font-size:13px}
 #nd_kr{cursor:pointer}
 #capu-modal[hidden]{display:none}
@@ -280,6 +290,7 @@ footer a{color:inherit}
     <h2 id="kr-title">Knowledge Reservoir (0 bất biến)</h2>
     <div id="kr-body"></div>
   </div>
+  <div id="kr-drawer-resize" role="separator" aria-orientation="vertical" aria-label="Kéo để đổi bề rộng ngăn kéo" tabindex="0" aria-valuemin="560" aria-valuemax="560" aria-valuenow="560"></div>
 </div>
 <div id="capu-modal" role="dialog" aria-modal="true" aria-labelledby="capu-title" hidden>
   <div data-capu-panel>
@@ -1162,42 +1173,102 @@ function capuClose(){
       f[(i<0?0:(i+(e.shiftKey?f.length-1:1))%f.length)].focus()}
   },true);
 })();
-// Drawer bể tri thức (T-092/T-093): bấm khối Knowledge Reservoir mở danh sách bất biến theo vùng
-let KR_OPEN=false,KR_KEY='';
-function krItems(){const m=(D&&D.model)||{};return (Array.isArray(m.invariant_list)?m.invariant_list:[]).filter(x=>PF==='all'||x.area==='_shared'||x.area===PF||String(x.area).startsWith(PF+'/'))}
+// Drawer bể tri thức (T-092/T-093/T-100): bấm khối Knowledge Reservoir mở ba tab (bất biến, eval đối kháng, hồi quy), kéo giãn được, Xem thêm 10
+let KR_OPEN=false,KR_KEY='',KR_TAB='invariants',KR_LIMIT=10,KR_PF=null,KR_FOCUS=null,KR_W=null;
+const KR_TABS=[['invariants','Bất biến'],['adversarial','Eval đối kháng'],['regression','Hồi quy']];
+const KR_STEP=10,KR_LS='kr-drawer-width';
+function krInRange(x){return PF==='all'||x.area==='_shared'||x.area===PF||String(x.area).startsWith(PF+'/')}
+function krItems(){const m=(D&&D.model)||{};return (Array.isArray(m.invariant_list)?m.invariant_list:[]).filter(krInRange)}
 function krCount(){const m=(D&&D.model)||{},inv=m.invariants||{};let n=0;
   if(PF==='all')return m.invariants_total||0;
   Object.keys(inv).forEach(k=>{if(k==='_shared'||k===PF||k.startsWith(PF+'/'))n+=inv[k]||0});return n}
+function krCounts(){const m=(D&&D.model)||{};return {invariants:krCount(),adversarial:m.adversarial_evals||0,regression:m.regression_evals||0}}
+function krList(key){const m=(D&&D.model)||{};
+  if(key==='invariants')return krItems();
+  const l=key==='adversarial'?m.adversarial_list:m.regression_list;return Array.isArray(l)?l:null}
 function krSync(){
   const g=$('nd_kr');if(!g)return;const n=krCount();
   g.setAttribute('aria-label',`Knowledge Reservoir, ${n} bất biến, bấm để xem danh sách`);
   if(KR_OPEN)krDraw()}
+// bề rộng: min = bề rộng mặc định, max = 90% khung nhìn; <=480px full màn, không kéo
+function krBounds(){const vw=window.innerWidth,min=Math.min(560,vw);return {min,max:Math.max(min,Math.round(vw*0.9)),narrow:vw<=480}}
+function krClamp(w){const b=krBounds();return Math.max(b.min,Math.min(b.max,w))}
+function krApplyWidth(){
+  const m=$('kr-drawer'),h=$('kr-drawer-resize');if(!m||!h)return;const b=krBounds();
+  if(b.narrow){m.style.removeProperty('--kr-w');return}
+  const w=krClamp(KR_W==null?b.min:KR_W);m.style.setProperty('--kr-w',w+'px');
+  h.setAttribute('aria-valuemin',String(b.min));h.setAttribute('aria-valuemax',String(b.max));h.setAttribute('aria-valuenow',String(w))}
+function krSetWidth(w){KR_W=Math.round(krClamp(w));try{localStorage.setItem(KR_LS,String(KR_W))}catch(e){}krApplyWidth()}
+function krCurW(){const p=document.querySelector('#kr-drawer [data-kr-panel]');return p?p.getBoundingClientRect().width:krBounds().min}
+function krMk(tag,attrs,text){const e=document.createElement(tag);Object.keys(attrs||{}).forEach(k=>e.setAttribute(k,attrs[k]));if(text!==undefined)e.textContent=text;return e}
+function krLink(url){const a=krMk('a',{'data-kr-link':''},'Mở trên GitHub');a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a}
+function krRow(attr,x){
+  const d=krMk('div',{[attr]:'','data-id':x.id,'data-source':x.source||''});
+  if(attr==='data-kr-inv')d.setAttribute('data-area',x.area);
+  d.append(krMk('span',{class:'ki-id'},x.id),krMk('span',{class:'ki-name'},x.name));
+  if(x.source)d.appendChild(krMk('span',{class:'ki-src'},`nguồn ${x.source}`));
+  d.appendChild(krLink(x.url));return d}
 function krDraw(){
-  const m=(D&&D.model)||{},n=krCount(),items=krItems();
+  const m=(D&&D.model)||{},n=krCount(),cnt=krCounts();
+  if(KR_PF!==PF){KR_PF=PF;KR_LIMIT=KR_STEP}
   $('kr-title').textContent=`Knowledge Reservoir (${n} bất biến)`;
-  const stats=[['invariants',n,'bất biến'],['adversarial',m.adversarial_evals||0,'eval đối kháng'],['regression',m.regression_evals||0,'hồi quy']];
+  const stats=[['invariants',n,'bất biến'],['adversarial',cnt.adversarial,'eval đối kháng'],['regression',cnt.regression,'hồi quy']];
   if(PF==='all')stats.push(['specs',m.specs||0,'spec']);
-  const key=PF+JSON.stringify([stats,items]);
+  const list=krList(KR_TAB);
+  const key=PF+KR_TAB+KR_LIMIT+JSON.stringify([stats,list]);
   if(key===KR_KEY)return;KR_KEY=key;
-  const panel=document.querySelector('#kr-drawer [data-kr-panel]'),sc=panel.scrollTop,box=$('kr-body'),act=document.activeElement,inDr=!!(act&&$('kr-drawer').contains(act)),keep=inDr&&act.getAttribute&&act.getAttribute('href');
+  const panel=document.querySelector('#kr-drawer [data-kr-panel]'),sc=panel.scrollTop,box=$('kr-body'),act=document.activeElement,inDr=!!(act&&$('kr-drawer').contains(act)&&box.contains(act));
+  let keepSel=null,keepHref=null;
+  if(inDr){if(act.hasAttribute('data-kr-tab'))keepSel=`[data-kr-tab="${act.getAttribute('data-kr-tab')}"]`;else if(act.hasAttribute('data-kr-more'))keepSel='[data-kr-more]';else keepHref=act.getAttribute('href')}
+  const hadClose=act===$('kr-drawer-close');
   box.textContent='';
-  const st=document.createElement('div');st.className='kr-stats';
-  stats.forEach(([k,v,l])=>{const e=document.createElement('span');e.setAttribute('data-kr-stat',k);e.setAttribute('data-value',String(v));const b=document.createElement('b');b.textContent=String(v);e.append(b,' '+l);st.appendChild(e)});
+  const st=krMk('div',{class:'kr-stats'});
+  stats.forEach(([k,v,l])=>{const e=krMk('span',{'data-kr-stat':k,'data-value':String(v)});e.append(krMk('b',{},String(v)),' '+l);st.appendChild(e)});
   box.appendChild(st);
-  if(PF!=='all'){const f=document.createElement('p');f.setAttribute('data-kr-filter','');f.textContent=`Đang lọc theo sản phẩm: ${PF}. Eval đối kháng và hồi quy tính cả công ty.`;box.appendChild(f)}
-  if(!items.length){const p=document.createElement('p');p.setAttribute('data-kr-empty','');p.textContent='Chưa có bất biến nào trong phạm vi này';box.appendChild(p)}
-  let cur=null,sec=null;
-  items.forEach(x=>{
-    if(x.area!==cur){cur=x.area;sec=document.createElement('section');sec.setAttribute('data-kr-area',x.area);const h=document.createElement('h3');h.textContent=x.area;sec.appendChild(h);box.appendChild(sec)}
-    const d=document.createElement('div');d.setAttribute('data-kr-inv','');d.setAttribute('data-area',x.area);d.setAttribute('data-id',x.id);d.setAttribute('data-source',x.source||'');
-    const id=document.createElement('span');id.className='ki-id';id.textContent=x.id;
-    const nm=document.createElement('span');nm.className='ki-name';nm.textContent=x.name;d.append(id,nm);
-    if(x.source){const s2=document.createElement('span');s2.className='ki-src';s2.textContent=`nguồn ${x.source}`;d.appendChild(s2)}
-    const a=document.createElement('a');a.setAttribute('data-kr-link','');a.href=x.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='Mở trên GitHub';d.appendChild(a);
-    sec.appendChild(d)});
+  if(PF!=='all')box.appendChild(krMk('p',{'data-kr-filter':''},`Đang lọc theo sản phẩm: ${PF}. Eval đối kháng và hồi quy tính cả công ty.`));
+  // tablist
+  const tl=krMk('div',{role:'tablist','aria-label':'Danh mục bể tri thức'});
+  KR_TABS.forEach(([k,l],i)=>{
+    const on=k===KR_TAB,b=krMk('button',{type:'button',role:'tab','data-kr-tab':k,'data-count':String(cnt[k]),'aria-selected':on?'true':'false',tabindex:on?'0':'-1'},`${l} ${cnt[k]}`);
+    b.addEventListener('click',()=>krSelect(k));
+    b.addEventListener('keydown',e=>{
+      let j=-1;if(e.key==='ArrowRight')j=(i+1)%3;else if(e.key==='ArrowLeft')j=(i+2)%3;else if(e.key==='Home')j=0;else if(e.key==='End')j=2;
+      if(j>=0){e.preventDefault();krSelect(KR_TABS[j][0],true)}});
+    tl.appendChild(b)});
+  box.appendChild(tl);
+  // tabpanel
+  const tp=krMk('div',{role:'tabpanel','data-kr-tabpanel':KR_TAB});box.appendChild(tp);
+  if(!list||!list.length){
+    const msg=KR_TAB==='invariants'?'Chưa có bất biến nào trong phạm vi này':(list===null&&cnt[KR_TAB]>0)?'Chưa có danh sách chi tiết':KR_TAB==='adversarial'?'Chưa có eval đối kháng nào':'Chưa có eval hồi quy nào';
+    tp.appendChild(krMk('p',{'data-kr-empty':''},msg))}
+  else{
+    const shown=list.slice(0,KR_LIMIT);
+    if(KR_TAB==='invariants'){
+      let cur=null,sec=null;
+      shown.forEach(x=>{
+        if(x.area!==cur){cur=x.area;sec=krMk('section',{'data-kr-area':x.area});sec.appendChild(krMk('h3',{},x.area));tp.appendChild(sec)}
+        sec.appendChild(krRow('data-kr-inv',x))})}
+    else shown.forEach(x=>tp.appendChild(krRow(KR_TAB==='adversarial'?'data-kr-adv':'data-kr-reg',x)));
+    const hidden=list.length-shown.length;
+    if(hidden>0){const mb=krMk('button',{type:'button','data-kr-more':''},`Xem thêm · còn ${hidden}`);mb.addEventListener('click',krMore);tp.appendChild(mb)}}
   panel.scrollTop=sc;
-  if(inDr){const a=keep&&[...box.querySelectorAll('a')].find(x=>x.getAttribute('href')===keep);(a||$('kr-drawer-close')).focus({preventScroll:true})}}
-function krOpen(){if(KR_OPEN)return;KR_OPEN=true;KR_KEY='';krDraw();$('kr-drawer').hidden=false;$('kr-drawer-close').focus()}
+  let f=null;
+  if(KR_FOCUS){f=box.querySelector(KR_FOCUS);KR_FOCUS=null}
+  else if(keepSel)f=box.querySelector(keepSel);
+  else if(keepHref)f=[...box.querySelectorAll('a')].find(x=>x.getAttribute('href')===keepHref);
+  if(!f&&(inDr||hadClose))f=$('kr-drawer-close');
+  if(f)f.focus({preventScroll:true})}
+function krSelect(k,focus){
+  if(k===KR_TAB&&!focus)return;
+  const was=KR_TAB;KR_TAB=k;KR_LIMIT=KR_STEP;if(focus)KR_FOCUS=`[data-kr-tab="${k}"]`;
+  if(was!==k)document.querySelector('#kr-drawer [data-kr-panel]').scrollTop=0;
+  krDraw()}
+function krMore(){
+  const list=krList(KR_TAB)||[],prev=Math.min(list.length,KR_LIMIT);
+  KR_LIMIT+=KR_STEP;krDraw();
+  if(!document.querySelector('#kr-drawer [data-kr-more]')){
+    const a=document.querySelectorAll('#kr-body [data-kr-tabpanel] a[data-kr-link]')[prev];if(a)a.focus({preventScroll:true})}}
+function krOpen(){if(KR_OPEN)return;KR_OPEN=true;KR_KEY='';KR_LIMIT=KR_STEP;KR_PF=PF;krApplyWidth();krDraw();$('kr-drawer').hidden=false;$('kr-drawer-close').focus()}
 function krClose(){if(!KR_OPEN)return;KR_OPEN=false;$('kr-drawer').hidden=true;const g=$('nd_kr');if(g)g.focus({preventScroll:true})}
 (function krInit(){
   const g=$('nd_kr'),m=$('kr-drawer');if(!g||!m)return;
@@ -1206,12 +1277,28 @@ function krClose(){if(!KR_OPEN)return;KR_OPEN=false;$('kr-drawer').hidden=true;c
   g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();krOpen()}});
   $('kr-drawer-close').addEventListener('click',krClose);
   m.addEventListener('click',e=>{if(e.target===m)krClose()});
+  try{const v=parseInt(localStorage.getItem(KR_LS),10);if(v>0)KR_W=v}catch(e){}
+  krApplyWidth();window.addEventListener('resize',krApplyWidth);
+  // tay nắm kéo bề rộng (chuột, chạm, bàn phím)
+  const h=$('kr-drawer-resize');
+  h.addEventListener('click',e=>e.stopPropagation());
+  h.addEventListener('pointerdown',e=>{
+    if(e.button!==undefined&&e.button!==0&&e.pointerType==='mouse')return;
+    e.preventDefault();e.stopPropagation();const x0=e.clientX,w0=krCurW();
+    try{h.setPointerCapture(e.pointerId)}catch(_){}
+    const mv=ev=>krSetWidth(w0+(x0-ev.clientX));
+    const up=()=>{h.removeEventListener('pointermove',mv);h.removeEventListener('pointerup',up);h.removeEventListener('pointercancel',up);h.removeEventListener('lostpointercapture',up)};
+    h.addEventListener('pointermove',mv);h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);h.addEventListener('lostpointercapture',up)});
+  h.addEventListener('keydown',e=>{
+    const b=krBounds();let w=null;
+    if(e.key==='ArrowLeft')w=krCurW()+20;else if(e.key==='ArrowRight')w=krCurW()-20;else if(e.key==='Home')w=b.min;else if(e.key==='End')w=b.max;
+    if(w!==null){e.preventDefault();e.stopPropagation();krSetWidth(w)}});
   // bắt ở window (giai đoạn bắt), như modal Capu: Esc/Tab của drawer đi trước tóm tắt nhân vật và chế độ phóng to
   window.addEventListener('keydown',e=>{
     if(!KR_OPEN)return;
     if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();krClose()}
     else if(e.key==='Tab'){e.preventDefault();e.stopImmediatePropagation();
-      const f=[...m.querySelectorAll('button,a[href]')],i=f.indexOf(document.activeElement);
+      const f=[...m.querySelectorAll('button,a[href],#kr-drawer-resize')].filter(x=>!x.disabled&&x.tabIndex>=0&&x.getClientRects().length),i=f.indexOf(document.activeElement);
       f[(i<0?0:(i+(e.shiftKey?f.length-1:1))%f.length)].focus()}
   },true);
 })();
