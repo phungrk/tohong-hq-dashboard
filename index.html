@@ -1260,8 +1260,10 @@ function krDraw(){
   if(f)f.focus({preventScroll:true})}
 function krSelect(k,focus){
   if(k===KR_TAB&&!focus)return;
-  const was=KR_TAB;if(focus)KR_FOCUS=`[data-kr-tab="${k}"]`;
-  if(was!==k){KR_TAB=k;KR_LIMIT=KR_STEP;document.querySelector('#kr-drawer [data-kr-panel]').scrollTop=0}
+  const was=KR_TAB;
+  if(was===k){const b=document.querySelector(`#kr-body [data-kr-tab="${k}"]`);if(b)b.focus({preventScroll:true});return}
+  if(focus)KR_FOCUS=`[data-kr-tab="${k}"]`;
+  {KR_TAB=k;KR_LIMIT=KR_STEP;document.querySelector('#kr-drawer [data-kr-panel]').scrollTop=0}
   krDraw()}
 function krMore(){
   const list=krList(KR_TAB)||[],prev=Math.min(list.length,KR_LIMIT);
