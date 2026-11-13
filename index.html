@@ -427,13 +427,13 @@ footer a{color:inherit}
     </section>
   </div>
 
-  <footer>Bản công khai: không có nội dung chi tiết của defect, ghi chú hay đường dẫn file. Nguồn: nhánh <code>dashboard-data</code> của <a href="https://github.com/phungrk/tohong-hq">phungrk/tohong-hq</a>.</footer>
+  <footer>Bản công khai: không có nội dung chi tiết của defect, ghi chú hay đường dẫn file. Nguồn: nhánh <code>dashboard-data</code> của <a href="https://github.com/phungrk/tohong-hq-dashboard">phungrk/tohong-hq-dashboard</a>.</footer>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script>
 (function(){
-const DATA_URL='https://raw.githubusercontent.com/phungrk/tohong-hq/dashboard-data/dashboard.json';
+const DATA_URL='https://raw.githubusercontent.com/phungrk/tohong-hq-dashboard/dashboard-data/dashboard.json';
 const REFRESH_MS=60000;
 const EV={requested:"Capu giao việc",assigned:"Giao việc",started:"Bắt đầu",handoff:"Bàn giao",rejected:"Trả về",accepted:"Chấp nhận",escalated:"Leo thang",blocked:"Báo bị chặn",unblocked:"Gỡ chặn",decided:"Capu quyết định",respec:"Sửa spec xong",evalplus:"Thêm eval, chạy lại",file_written:"Ghi file",board_edited_directly:"Sửa tay sổ cái"};
 const POS_WIDE={"capu":[.5,40],"chief-of-staff":[.5,130],"product":[.1,245],"engineering":[.3,245],"vendor-ops":[.5,245],"growth":[.7,245],"finance":[.9,245],"reviewer":[.35,360],"done":[.7,360]};
@@ -1382,7 +1382,7 @@ async function load(){
     render();
   }catch(err){
     const b=$('banner');b.style.display='block';
-    b.textContent=D?'Không tải được dữ liệu Git mới ('+err.message+'). Đang hiện bản tải trước đó.':'Chưa tải được dữ liệu ('+err.message+'). Kiểm tra nhánh dashboard-data của repo tohong-hq.';
+    b.textContent=D?'Không tải được dữ liệu Git mới ('+err.message+'). Đang hiện bản tải trước đó.':'Chưa tải được dữ liệu ('+err.message+'). Kiểm tra nhánh dashboard-data của repo tohong-hq-dashboard.';
   }
 }
 
