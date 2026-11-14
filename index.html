@@ -784,11 +784,12 @@ function drawFlow(x){
   const fx={...x,busy:new Set(note.keys())};
   Object.keys(pos).forEach(k=>{
     const [cx,cy]=P(k),r=R(k),L=Math.max(r,20),m=team.get(k),hiring=m&&m.status!=='Hired',w=working.get(k);
+    const room=Math.max(5,Math.floor((2*Math.min(cx,W-cx)-8)/7)),cut=v=>{v=String(v);return v.length>room?v.slice(0,room-1)+'…':v};   // chữ dưới node không vượt khung: cắt bằng …
     const st=characterState(k,fx,now),tr=transientFor(k,x,now);
     const n=svg.append('g').attr('transform',`translate(${cx},${cy})`).on('mousemove',ev=>show(ev,m?[[null,m.name+' · '+m.status],['Đang giữ',m.wip+' việc'],[m.label,m.output]].concat(w?[['Đang',w.action+' · '+ago(w.at)]]:[],[['Trạng thái',CHAR_LABEL[st]]]):[[null,'Việc đã hoàn thành'],['Trạng thái',CHAR_LABEL[st]]])).on('mouseleave',hide);
     if(act.some(a=>a.doing&&a.to===k))n.append('circle').attr('class','run-glow').attr('r',r+5);
     if(w&&!hiring)n.append('circle').attr('class','act-ring').attr('r',r+2);
-    if(note.has(k)){const tx=String(note.get(k));n.append('text').attr('y',L+29).attr('text-anchor','middle').attr('fill','var(--ok)').style('font-size','11.5px').text(tx.length>18?tx.slice(0,17)+'…':tx)}
+    if(note.has(k)){n.append('text').attr('y',L+29).attr('text-anchor','middle').attr('fill','var(--ok)').style('font-size','11.5px').text(cut(note.get(k)))}
     n.append('circle').attr('r',r).attr('fill',k==='done'?'var(--bg)':'var(--panel)').attr('stroke',hiring?'var(--axis)':(m&&m.wip>0?'var(--accent)':'var(--axis)')).attr('stroke-width',m&&m.wip>0&&!hiring?2:1.25).attr('stroke-dasharray',hiring?'4 3':null);
     let dx=28,dy=0;
     if(tr&&tr.state==='handing-off'&&pos[tr.ev.to]){const [tx,ty]=P(tr.ev.to),l=Math.hypot(tx-cx,ty-cy)||1;dx=Math.round((tx-cx)/l*28);dy=Math.round((ty-cy)/l*28)}
@@ -797,7 +798,7 @@ function drawFlow(x){
     if(m){const bg=n.append('g').attr('class','wip-badge').attr('transform',`translate(${Math.max(r,16)+8},12)`);
       bg.append('circle').attr('r',8).attr('fill','var(--panel)').attr('stroke',m.wip>0&&!hiring?'var(--accent)':'var(--axis)').attr('stroke-width',1.25).attr('stroke-dasharray',hiring?'3 2':null);
       bg.append('text').attr('text-anchor','middle').attr('dominant-baseline','central').attr('fill',hiring?'var(--muted)':'var(--fg)').style('font-size','11px').text(hiring?'?':m.wip)}
-    n.append('text').attr('y',L+15).attr('text-anchor','middle').attr('fill',hiring?'var(--muted)':'var(--fg)').style('font-size','12px').text(m?m.name:'Hoàn thành');
+    n.append('text').attr('y',L+15).attr('text-anchor','middle').attr('fill',hiring?'var(--muted)':'var(--fg)').style('font-size','12px').text(cut(m?m.name:'Hoàn thành'));   // tên đầy đủ nằm ở tooltip
     if(hiring)n.append('text').attr('y',L+29).attr('text-anchor','middle').attr('fill','var(--warn)').style('font-size','12px').text('Need Hiring');
   });
   clearTimeout(stateTimer);
