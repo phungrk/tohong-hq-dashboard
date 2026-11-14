@@ -436,9 +436,16 @@ footer a{color:inherit}
 const DATA_URL='https://raw.githubusercontent.com/phungrk/tohong-hq-dashboard/dashboard-data/dashboard.json';
 const REFRESH_MS=60000;
 const EV={requested:"Capu giao việc",assigned:"Giao việc",started:"Bắt đầu",handoff:"Bàn giao",rejected:"Trả về",accepted:"Chấp nhận",escalated:"Leo thang",blocked:"Báo bị chặn",unblocked:"Gỡ chặn",decided:"Capu quyết định",respec:"Sửa spec xong",evalplus:"Thêm eval, chạy lại",file_written:"Ghi file",board_edited_directly:"Sửa tay sổ cái"};
-const POS_WIDE={"capu":[.5,40],"chief-of-staff":[.5,130],"product":[.1,245],"engineering":[.3,245],"vendor-ops":[.5,245],"growth":[.7,245],"finance":[.9,245],"reviewer":[.35,360],"done":[.7,360]};
-const POS_NARROW={"capu":[.5,40],"chief-of-staff":[.5,130],"product":[.17,240],"engineering":[.5,240],"vendor-ops":[.83,240],"growth":[.33,335],"finance":[.67,335],"reviewer":[.3,450],"done":[.7,450]};
-let pos=POS_WIDE;
+// Vị trí node sinh từ roster trong dashboard.json (T-162): capu và chief-of-staff ở hai hàng đầu, các bộ phận theo thứ tự roster rồi "done" xếp thành hàng đều nhau.
+// Thêm bộ phận vào roster thì có node, không sửa trang. Khung rộng 5 node mỗi hàng, khung hẹp 3.
+let pos={};
+function layoutPos(ids,narrow){
+  const out={},rest=ids.filter(i=>i!=='capu'&&i!=='chief-of-staff').concat(['done']),per=narrow?3:5,gap=narrow?112:115,y0=narrow?240:245;
+  if(ids.includes('capu'))out.capu=[.5,40];
+  if(ids.includes('chief-of-staff'))out['chief-of-staff']=[.5,130];
+  for(let i=0;i<rest.length;i+=per){const row=rest.slice(i,i+per);row.forEach((id,j)=>{out[id]=[(j+.5)/row.length,y0+(i/per)*gap]})}
+  return out;
+}
 const RUN_STATES=['new','doing','review','rework','spec'];
 const MAX_ANIM=6;
 const STATE_LABEL={new:'Mới',doing:'Đang làm',review:'Chờ cổng',rework:'Code rework',spec:'Spec rework',blocked:'Bị chặn',escalated:'Leo thang',done:'Xong'};
@@ -475,6 +482,7 @@ function emptyRow(tb,n,text){const tr=tb.insertRow();const td=tr.insertCell();td
 const isFresh=k=>{const t=fresh.get(k);return t&&Date.now()-t<4000};
 const nowServer=()=>Date.now()+serverOffset;
 function ago(at){const s=Math.max(0,Math.round((nowServer()-at)/1000));return s<60?s+' giây trước':Math.round(s/60)+' phút trước'}
+function putAct(a){const o=activity.get(a.agent);if(!o||!(a.at<o.at))activity.set(a.agent,a)}   // mỗi agent giữ nhịp mới nhất theo `at`, không theo thứ tự tới
 function activeAgents(){return [...activity.values()].filter(a=>nowServer()-a.at<ACT_TTL&&inScope(a.task))}
 
 function applyLive(e,markFresh){
@@ -518,9 +526,9 @@ function connectLive(){
   ws.onopen=()=>{retry=0;setLive('on');scheduleRender()};
   ws.onmessage=m=>{
     let d;try{d=JSON.parse(m.data)}catch(_){return}
-    if(d.type==='snapshot'){serverOffset=d.server_time-Date.now();(d.events||[]).forEach(e=>applyLive(e,false));activity.clear();(d.activity||[]).forEach(a=>activity.set(a.agent,a))}
+    if(d.type==='snapshot'){serverOffset=d.server_time-Date.now();(d.events||[]).forEach(e=>applyLive(e,false));activity.clear();(d.activity||[]).forEach(putAct)}
     else if(d.type==='event')applyLive(d,true);
-    else if(d.type==='activity'){if(!activity.has(d.agent))fresh.set('agent:'+d.agent,Date.now());activity.set(d.agent,d)}
+    else if(d.type==='activity'){if(!activity.has(d.agent))fresh.set('agent:'+d.agent,Date.now());putAct(d)}
     scheduleRender();
   };
   ws.onclose=()=>{setLive('down');retryLive()};
@@ -717,6 +725,7 @@ function characterState(id,x,now){
   const m=x.team.find(r=>r.id===id);
   if(m&&m.status!=='Hired')return 'hiring';
   const t=transientFor(id,x,now);if(t)return t.state;
+  if(x.busy)return x.busy.has(id)?'working':'idle';   // sơ đồ luồng (T-162): working khi và chỉ khi node có chữ trạng thái; #model không dùng hàm này
   if((x.working&&x.working.has(id))||(m&&m.wip>0))return 'working';
   return 'idle';
 }
@@ -725,8 +734,9 @@ let stateTimer=0;
 
 function drawFlow(x){
   const box=$('flow');box.innerHTML='';
-  const W=Math.max(300,box.clientWidth),narrow=W<560,H=narrow?510:420;
-  pos=narrow?POS_NARROW:POS_WIDE;box.style.minHeight=H+'px';
+  const W=Math.max(300,box.clientWidth),narrow=W<560;
+  pos=layoutPos(x.team.map(r=>r.id).filter(i=>i!=='done'),narrow);
+  const H=Math.max(...Object.values(pos).map(v=>v[1]))+75;box.style.minHeight=H+'px';
   const team=new Map(x.team.map(r=>[r.id,r]));
   const P=k=>[pos[k][0]*W,pos[k][1]];
   const R=k=>16+Math.min(((team.get(k)||{}).wip)||0,6)*2.5;
@@ -766,12 +776,19 @@ function drawFlow(x){
   if(live)live.textContent=act.length?act.reduce((n,r)=>n+r.tasks.length,0)+' việc đang chạy trên '+act.length+' đường':'Không có việc nào đang chạy';
   const working=new Map(activeAgents().map(a=>[a.agent,a]));
   const now=Date.now();
+  // chữ trên node: nhịp còn hạn -> hành động của nhịp; không nhịp mà giữ việc doing/review/spec/rework (theo bộ lọc) -> "Đang làm"; còn lại không chữ
+  const holds=new Set(x.tasks.filter(t=>['doing','review','spec','rework'].includes(t.state)).map(t=>t.holder));
+  const note=new Map();
+  Object.keys(pos).forEach(k=>{const m=team.get(k);if(m&&m.status!=='Hired')return;const w=working.get(k);
+    if(w)note.set(k,w.action);else if(holds.has(k))note.set(k,'Đang làm')});
+  const fx={...x,busy:new Set(note.keys())};
   Object.keys(pos).forEach(k=>{
     const [cx,cy]=P(k),r=R(k),L=Math.max(r,20),m=team.get(k),hiring=m&&m.status!=='Hired',w=working.get(k);
-    const st=characterState(k,x,now),tr=transientFor(k,x,now);
+    const st=characterState(k,fx,now),tr=transientFor(k,x,now);
     const n=svg.append('g').attr('transform',`translate(${cx},${cy})`).on('mousemove',ev=>show(ev,m?[[null,m.name+' · '+m.status],['Đang giữ',m.wip+' việc'],[m.label,m.output]].concat(w?[['Đang',w.action+' · '+ago(w.at)]]:[],[['Trạng thái',CHAR_LABEL[st]]]):[[null,'Việc đã hoàn thành'],['Trạng thái',CHAR_LABEL[st]]])).on('mouseleave',hide);
     if(act.some(a=>a.doing&&a.to===k))n.append('circle').attr('class','run-glow').attr('r',r+5);
-    if(w&&!hiring){n.append('circle').attr('class','act-ring').attr('r',r+2);n.append('text').attr('y',L+29).attr('text-anchor','middle').attr('fill','var(--ok)').style('font-size','11.5px').text(w.action)}
+    if(w&&!hiring)n.append('circle').attr('class','act-ring').attr('r',r+2);
+    if(note.has(k)){const tx=String(note.get(k));n.append('text').attr('y',L+29).attr('text-anchor','middle').attr('fill','var(--ok)').style('font-size','11.5px').text(tx.length>18?tx.slice(0,17)+'…':tx)}
     n.append('circle').attr('r',r).attr('fill',k==='done'?'var(--bg)':'var(--panel)').attr('stroke',hiring?'var(--axis)':(m&&m.wip>0?'var(--accent)':'var(--axis)')).attr('stroke-width',m&&m.wip>0&&!hiring?2:1.25).attr('stroke-dasharray',hiring?'4 3':null);
     let dx=28,dy=0;
     if(tr&&tr.state==='handing-off'&&pos[tr.ev.to]){const [tx,ty]=P(tr.ev.to),l=Math.hypot(tx-cx,ty-cy)||1;dx=Math.round((tx-cx)/l*28);dy=Math.round((ty-cy)/l*28)}
